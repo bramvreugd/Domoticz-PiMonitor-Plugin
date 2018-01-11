@@ -1,2 +1,20 @@
 # PiMonitor
-Python plugin to monitor temperature, memory usage, etc. from a Raspberry Pi
+Python plugin to monitor temperature, memory usage, etc. from a Raspberry Pi.
+
+If you want to monitor disk usage, look at https://github.com/Xorfor/Domoticz-Disc-usage-Plugin
+
+The following parameters are displayed:
+
+| Name            | Description                                                        |
+| :---            | :---                                                               |
+| CPU temperature | Shows the current CPU temperature                                  |
+| GPU temperature | Shows the current GPU temperature                                  |
+| CPU memory      | Size of allocated memory for CPU                                   |
+| GPU memory      | Size of allocated memory for GPU (specified with eg. raspi-config) |
+| Memory usage    | Percentage of CPU memory in use                                    |
+| CPU usage       | Percentage of CPU usage                                            |
+| CPU speed       | Current CPU speed                                                  |
+
+## To do
+- [ ] Uptime. Due to a bug in Domoticz, not able to change the units in options
+- [ ] Use psutil?
