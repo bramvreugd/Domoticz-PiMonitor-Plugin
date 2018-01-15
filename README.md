@@ -21,6 +21,7 @@ The following parameters are displayed:
 | Memory usage    | Percentage of CPU memory in use                                    |
 | CPU usage       | Percentage of CPU usage                                            |
 | CPU speed       | Current CPU speed                                                  |
+| CPU count       | Number of CPUs/cores                                               |
 | Up time         | Up time of the Pi, in sec, minutes, hours or days                  |
 | Connections     | Number of active network connections                               |
 
