@@ -21,7 +21,6 @@
 """
 import Domoticz
 import os
-#import sqlite3
 
 class BasePlugin:
 
@@ -37,6 +36,7 @@ class BasePlugin:
     __UNIT_CPUMEMORY = 7
     __UNIT_GPUMEMORY = 8
     __UNIT_CPUCOUNT = 9
+    __UNIT_CONNECTIONS = 10
 
     def __init__(self):
         self.__runAgain = 0
@@ -64,7 +64,9 @@ class BasePlugin:
             Domoticz.Device(Unit=self.__UNIT_CPUUSE, Name="CPU usage", TypeName="Custom", Options={"Custom": "1;%"}, Image=image, Used=1).Create()
             Domoticz.Device(Unit=self.__UNIT_RAMUSE, Name="Memory usage", TypeName="Custom", Options={"Custom": "1;%"}, Image=image, Used=1).Create()
             Domoticz.Device(Unit=self.__UNIT_CPUSPEED, Name="CPU speed", TypeName="Custom", Options={"Custom": "1;Mhz"}, Image=image, Used=1).Create()
-            #Domoticz.Device(Unit=self.__UNIT_UPTIME, Name="Up time", TypeName="Custom", Options={"Custom": "1;sec"}, Image=image, Used=1).Create()
+            Domoticz.Device(Unit=self.__UNIT_UPTIME, Name="Up time", TypeName="Custom", Options={"Custom": "1;sec"}, Image=image, Used=1).Create()
+            Domoticz.Device(Unit=self.__UNIT_CONNECTIONS, Name="Connections", TypeName="Custom", Options={"Custom": "1;"}, Image=image, Used=1).Create()
+            Domoticz.Device(Unit=self.__UNIT_CPUCOUNT, Name="CPU count", TypeName="Custom", Image=image, Used=1).Create()
         # Log config
         DumpConfigToLog()
         # Connection
@@ -130,20 +132,25 @@ class BasePlugin:
             #
             res = getCPUuptime()  # in sec
             Domoticz.Debug("Up time.....: "+str(res)+" sec")
-            if res < 60:
-                fnumber = round( res, 2 )
-                UpdateDeviceOptions(self.__UNIT_UPTIME, {"Custom": "0;sec"})
+            # if res < 60:
+            fnumber = round( res, 2 )
+            UpdateDeviceOptions(self.__UNIT_UPTIME, {"Custom": "0;s"})
             if res >= 60:
                 fnumber = round(res / (60), 2)
                 UpdateDeviceOptions(self.__UNIT_UPTIME, {"Custom": "0;min"})
             if res >= 60 * 60:
                 fnumber = round(res / (60 * 60), 2)
-                UpdateDeviceOptions(self.__UNIT_UPTIME, {"Custom": "0;uur"})
+                UpdateDeviceOptions(self.__UNIT_UPTIME, {"Custom": "0;h"})
                 Domoticz.Debug("Device Options:   " + str(Devices[self.__UNIT_UPTIME].Options))
             if res >= 60 * 60 * 24:
                 fnumber = round( res / ( 60 * 60 * 24 ), 2 )
-                UpdateDeviceOptions(self.__UNIT_UPTIME, {"Custom": "0;dag"})
+                UpdateDeviceOptions(self.__UNIT_UPTIME, {"Custom": "0;d"})
             UpdateDevice(self.__UNIT_UPTIME, int(fnumber), str(fnumber), AlwaysUpdate=True)
+            #
+            inumber = getNetworkConnections("ESTABLISHED")
+            #inumber = getNetworkConnections("CLOSE_WAIT")
+            Domoticz.Debug("Connections.....: "+str(res))
+            UpdateDevice(self.__UNIT_CONNECTIONS, inumber, str(inumber), AlwaysUpdate=True)
         else:
             Domoticz.Debug("onHeartbeat called, run again in " + str(self.__runAgain) + " heartbeats.")
 
@@ -212,8 +219,9 @@ def UpdateDevice(Unit, nValue, sValue, TimedOut=0, AlwaysUpdate=False):
             Domoticz.Debug("Update " + Devices[Unit].Name + ": " + str(nValue) + " - '" + str(sValue) + "'")
 
 def UpdateDeviceOptions(Unit, Options={}):
-    Devices[Unit].Update(nValue=Devices[Unit].nValue, sValue=Devices[Unit].sValue, Options=Options)
-    Domoticz.Debug("Update options " + Devices[Unit].Name + ": " + str(Options))
+    if Unit in Devices:
+        Devices[Unit].Update(nValue=Devices[Unit].nValue, sValue=Devices[Unit].sValue, Options=Options)
+        Domoticz.Debug("Update options " + Devices[Unit].Name + ": " + str(Options))
 
 # --------------------------------------------------------------------------------
 
@@ -245,6 +253,18 @@ def getCPUuptime():
         res = round(fields[0])
     except:
         res = 0.0
+    return res
+
+
+# Return number of network connections
+def getNetworkConnections(state):
+    res = 0
+    try:
+        for line in os.popen("netstat -tun").readlines():
+            if line.find(state) >= 0:
+                res += 1
+    except:
+        res = 0
     return res
 
 # Return GPU temperature
