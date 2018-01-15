@@ -14,7 +14,9 @@ The following parameters are displayed:
 | Memory usage    | Percentage of CPU memory in use                                    |
 | CPU usage       | Percentage of CPU usage                                            |
 | CPU speed       | Current CPU speed                                                  |
+| Up time         | Up time of the Pi, in sec, minutes, hours or days                  |
+| Connections     | Number of active network connections                               |
 
 ## To do
-- [ ] Uptime. Due to a bug in Domoticz, not able to change the units in options
+~~- [ ] Uptime. Due to a bug in Domoticz, not able to change the units in options~~
 - [ ] Use psutil?
