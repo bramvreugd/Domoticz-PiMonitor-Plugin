@@ -3,6 +3,13 @@ Python plugin to monitor temperature, memory usage, etc. from a Raspberry Pi.
 
 If you want to monitor disk usage, look at https://github.com/Xorfor/Domoticz-Disc-usage-Plugin
 
+## Prerequisites
+Only works on Raspberry Pi
+
+## Parameters
+None
+
+## Devices
 The following parameters are displayed:
 
 | Name            | Description                                                        |
