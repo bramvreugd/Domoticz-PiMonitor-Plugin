@@ -28,3 +28,5 @@ The following parameters are displayed:
 ## To do
 ~~- [ ] Uptime. Due to a bug in Domoticz, not able to change the units in options~~
 - [ ] Use psutil?
+
+[![Github All Releases](https://img.shields.io/github/downloads/Xorfor/Domoticz-PiMonitor-Plugin/total.svg?style=plastic)](https://github.com/Xorfor/Domoticz-PiMonitor-Plugin/)
