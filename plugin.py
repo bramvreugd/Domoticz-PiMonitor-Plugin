@@ -54,9 +54,9 @@ class BasePlugin:
         # Validate parameters
         # Images
         # Check if images are in database
-        if "xfr_pimonitor" not in Images:
-            Domoticz.Image("xfr_pimonitor.zip").Create()
-        image = Images["xfr_pimonitor"].ID
+        if "xfrpimonitor" not in Images:
+            Domoticz.Image("xfrpimonitor.zip").Create()
+        image = Images["xfrpimonitor"].ID
         Domoticz.Debug("Image created. ID: "+str(image))
         # Create devices
         if len(Devices) == 0:

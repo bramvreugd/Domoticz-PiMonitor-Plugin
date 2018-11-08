@@ -102,3 +102,7 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+xfrpimonitor/xfrpimonitor48_On.png
+xfrpimonitor/icons.txt
+xfrpimonitor/xfrpimonitor.png
+xfrpimonitor/xfrpimonitor48_Off.png
