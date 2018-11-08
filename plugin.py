@@ -38,6 +38,7 @@ class BasePlugin:
     __UNIT_SDRAMCVOLTAGE = 12
     __UNIT_SDRAMIVOLTAGE = 13
     __UNIT_SDRAMPVOLTAGE = 14
+    __UNIT_DOMOTICZMEMORY = 15
 
     __UNITS = [
         # Unit, Name, Type, Subtype, Options, Used
@@ -55,6 +56,7 @@ class BasePlugin:
         [__UNIT_SDRAMCVOLTAGE, "SDRAM C voltage", 243, 31, {"Custom": "0;V"}, 1],
         [__UNIT_SDRAMIVOLTAGE, "SDRAM I voltage", 243, 31, {"Custom": "0;V"}, 1],
         [__UNIT_SDRAMPVOLTAGE, "SDRAM P voltage", 243, 31, {"Custom": "0;V"}, 1],
+        [__UNIT_DOMOTICZMEMORY, "Domoticz memory", 243, 31, {"Custom": "0;KB"}, 1],
     ]
 
     def __init__(self):
@@ -85,8 +87,7 @@ class BasePlugin:
                                 Used=unit[5],
                                 Image=image).Create()
         # Log config
-        DumpConfigToLog()
-        # Connection
+        DumpAllToLog()
 
     def onStop(self):
         Domoticz.Debug("onStop called")
@@ -116,42 +117,42 @@ class BasePlugin:
             # Execute your command
             #
             fnumber = getCPUcount()
-            Domoticz.Debug("CPU count...: "+str(fnumber)+"")
+            Domoticz.Debug("CPU count...: {}".format(fnumber))
             UpdateDevice(self.__UNIT_CPUCOUNT, int(fnumber),
                          str(fnumber), AlwaysUpdate=True)
             #
             fnumber = getCPUtemperature()
-            Domoticz.Debug("CPU temp....: "+str(fnumber)+" &deg;C")
+            Domoticz.Debug("CPU temp....: {} °C".format(fnumber))
             UpdateDevice(self.__UNIT_CPUTEMP, int(fnumber),
                          str(fnumber), AlwaysUpdate=True)
             #
             fnumber = getGPUtemperature()
-            Domoticz.Debug("GPU temp....: "+str(fnumber)+" &deg;C")
+            Domoticz.Debug("GPU temp....: {} °C".format(fnumber))
             UpdateDevice(self.__UNIT_GPUTEMP, int(fnumber),
                          str(fnumber), AlwaysUpdate=True)
             #
             fnumber = getGPUmemory()
-            Domoticz.Debug("GPU memory..: "+str(fnumber)+" Mb")
+            Domoticz.Debug("GPU memory..: {} Mb".format(fnumber))
             UpdateDevice(self.__UNIT_GPUMEMORY, int(fnumber),
                          str(fnumber), AlwaysUpdate=True)
             #
             fnumber = getCPUmemory()
-            Domoticz.Debug("CPU memory..: "+str(fnumber)+" Mb")
+            Domoticz.Debug("CPU memory..: {} Mb".format(fnumber))
             UpdateDevice(self.__UNIT_CPUMEMORY, int(fnumber),
                          str(fnumber), AlwaysUpdate=True)
             #
             fnumber = getCPUuse()
-            Domoticz.Debug("CPU use.....: "+str(fnumber)+" &#37;")
+            Domoticz.Debug("CPU use.....: {} %".format(fnumber))
             UpdateDevice(self.__UNIT_CPUUSE, int(fnumber),
                          str(fnumber), AlwaysUpdate=True)
             #
             fnumber = getRAMinfo()
-            Domoticz.Debug("RAM use.....: "+str(fnumber)+" &#37;")
+            Domoticz.Debug("RAM use.....: {} %".format(fnumber))
             UpdateDevice(self.__UNIT_RAMUSE, int(fnumber),
                          str(fnumber), AlwaysUpdate=True)
             #
             fnumber = getCPUcurrentSpeed()
-            Domoticz.Debug("CPU speed...: "+str(fnumber)+" Mhz")
+            Domoticz.Debug("CPU speed...: {} Mhz".format(fnumber))
             UpdateDevice(self.__UNIT_CPUSPEED, int(fnumber),
                          str(fnumber), AlwaysUpdate=True)
             #
@@ -176,27 +177,39 @@ class BasePlugin:
                          str(fnumber), AlwaysUpdate=True)
             #
             res = getCPUuptime()  # in sec
-            Domoticz.Debug("Up time.....: "+str(res)+" sec")
+            Domoticz.Debug("Up time.....: {} sec".format(res))
             # if res < 60:
-            fnumber = round( res, 2 )
-            UpdateDeviceOptions(self.__UNIT_UPTIME, {"Custom": "0;s"})
+            fnumber = round(res, 2)
+            options = {"Custom": "0;s"}
+            # UpdateDeviceOptions(self.__UNIT_UPTIME, {"Custom": "0;s"})
             if res >= 60:
                 fnumber = round(res / (60), 2)
-                UpdateDeviceOptions(self.__UNIT_UPTIME, {"Custom": "0;min"})
+                options = {"Custom": "0;min"}
+                # UpdateDeviceOptions(self.__UNIT_UPTIME, {"Custom": "0;min"})
             if res >= 60 * 60:
                 fnumber = round(res / (60 * 60), 2)
-                UpdateDeviceOptions(self.__UNIT_UPTIME, {"Custom": "0;h"})
+                options = {"Custom": "0;h"}
+                # UpdateDeviceOptions(self.__UNIT_UPTIME, {"Custom": "0;h"})
             if res >= 60 * 60 * 24:
-                fnumber = round( res / ( 60 * 60 * 24 ), 2 )
-                UpdateDeviceOptions(self.__UNIT_UPTIME, {"Custom": "0;d"})
+                fnumber = round(res / (60 * 60 * 24), 2)
+                options = {"Custom": "0;d"}
+                # UpdateDeviceOptions(self.__UNIT_UPTIME, {"Custom": "0;d"})
+            UpdateDeviceOptions(self.__UNIT_UPTIME, options)
             UpdateDevice(self.__UNIT_UPTIME, int(fnumber), str(fnumber), AlwaysUpdate=True)
             #
             inumber = getNetworkConnections("ESTABLISHED")
             #inumber = getNetworkConnections("CLOSE_WAIT")
-            Domoticz.Debug("Connections.....: "+str(res))
-            UpdateDevice(self.__UNIT_CONNECTIONS, inumber, str(inumber), AlwaysUpdate = True)
+            Domoticz.Debug("Connections.....: {}".format(inumber))
+            UpdateDevice(self.__UNIT_CONNECTIONS, inumber, str(inumber), AlwaysUpdate=True)
+            #
+            fnumber = getDomoticzMemory()
+            Domoticz.Debug("Domoticz memory...: {} KB".format(fnumber))
+            UpdateDevice(self.__UNIT_DOMOTICZMEMORY, int(fnumber),
+                         str(fnumber), AlwaysUpdate=True)
+            #
         else:
-            Domoticz.Debug("onHeartbeat called, run again in " + str(self.__runAgain) + " heartbeats.")
+            Domoticz.Debug(
+                "onHeartbeat called, run again in {} heartbeats.".format(self.__runAgain))
 
 global _plugin
 _plugin = BasePlugin()
@@ -236,36 +249,95 @@ def onHeartbeat():
 ################################################################################
 # Generic helper functions
 ################################################################################
-def DumpConfigToLog():
+def DumpDevicesToLog():
+    # Show devices
+    Domoticz.Debug("Device count.........: {}".format(len(Devices)))
+    for x in Devices:
+        Domoticz.Debug("Device...............: {} - {}".format(x, Devices[x]))
+        Domoticz.Debug("Device Idx...........: {}".format(Devices[x].ID))
+        Domoticz.Debug(
+            "Device Type..........: {} / {}".format(Devices[x].Type, Devices[x].SubType))
+        Domoticz.Debug("Device Name..........: '{}'".format(Devices[x].Name))
+        Domoticz.Debug("Device nValue........: {}".format(Devices[x].nValue))
+        Domoticz.Debug("Device sValue........: '{}'".format(Devices[x].sValue))
+        Domoticz.Debug(
+            "Device Options.......: '{}'".format(Devices[x].Options))
+        Domoticz.Debug("Device Used..........: {}".format(Devices[x].Used))
+        Domoticz.Debug(
+            "Device ID............: '{}'".format(Devices[x].DeviceID))
+        Domoticz.Debug("Device LastLevel.....: {}".format(
+            Devices[x].LastLevel))
+        Domoticz.Debug("Device Image.........: {}".format(Devices[x].Image))
+
+
+def DumpImagesToLog():
+    # Show images
+    Domoticz.Debug("Image count..........: {}".format((len(Images))))
+    for x in Images:
+        Domoticz.Debug("Image '{}'...: '{}'".format(x, Images[x]))
+
+
+def DumpParametersToLog():
+    # Show parameters
+    Domoticz.Debug("Parameters count.....: {}".format(len(Parameters)))
     for x in Parameters:
         if Parameters[x] != "":
-            Domoticz.Debug("'" + x + "':'" + str(Parameters[x]) + "'")
-    Domoticz.Debug("Device count: " + str(len(Devices)))
-    for x in Devices:
-        Domoticz.Debug("Device:           " + str(x) + " - " + str(Devices[x]))
-        Domoticz.Debug("Device ID:       '" + str(Devices[x].ID) + "'")
-        Domoticz.Debug("Device Name:     '" + Devices[x].Name + "'")
-        Domoticz.Debug("Device nValue:    " + str(Devices[x].nValue))
-        Domoticz.Debug("Device sValue:   '" + Devices[x].sValue + "'")
-        Domoticz.Debug("Device LastLevel: " + str(Devices[x].LastLevel))
-        Domoticz.Debug("Device Options:   " + str(Devices[x].Options))
+            Domoticz.Debug("Parameter '{}'...: '{}'".format(x, Parameters[x]))
+
+
+def DumpSettingsToLog():
+    # Show settings
+    Domoticz.Debug("Settings count.......: {}".format(len(Settings)))
     for x in Settings:
-        Domoticz.Debug("Setting:          " + str(x) + " - " + str(Settings[x]))
+        Domoticz.Debug("Setting '{}'...: '{}'".format(x, Settings[x]))
+
+
+def DumpAllToLog():
+    DumpDevicesToLog()
+    DumpImagesToLog()
+    DumpParametersToLog()
+    DumpSettingsToLog()
+
+
+def DumpHTTPResponseToLog(httpDict):
+    if isinstance(httpDict, dict):
+        Domoticz.Debug("HTTP Details (" + str(len(httpDict)) + "):")
+        for x in httpDict:
+            if isinstance(httpDict[x], dict):
+                Domoticz.Debug(
+                    "....'" + x + " (" + str(len(httpDict[x])) + "):")
+                for y in httpDict[x]:
+                    Domoticz.Debug("........'" + y + "':'" +
+                                   str(httpDict[x][y]) + "'")
+            else:
+                Domoticz.Debug("....'" + x + "':'" + str(httpDict[x]) + "'")
+
 
 def UpdateDevice(Unit, nValue, sValue, TimedOut=0, AlwaysUpdate=False):
-    # Make sure that the Domoticz device still exists (they can be deleted) before updating it
     if Unit in Devices:
-        if Devices[Unit].nValue != nValue \
-                or Devices[Unit].sValue != sValue \
-                or Devices[Unit].TimedOut != TimedOut \
-                or AlwaysUpdate:
-            Devices[Unit].Update(nValue=nValue, sValue=str(sValue), TimedOut=TimedOut)
-            Domoticz.Debug("Update " + Devices[Unit].Name + ": " + str(nValue) + " - '" + str(sValue) + "'")
+        if Devices[Unit].nValue != nValue or Devices[Unit].sValue != sValue or Devices[
+                Unit].TimedOut != TimedOut or AlwaysUpdate:
+            Devices[Unit].Update(
+                nValue=nValue, sValue=str(sValue), TimedOut=TimedOut)
+            # Domoticz.Debug("Update {}: {} - '{}'".format(Devices[Unit].Name, nValue, sValue))
+
 
 def UpdateDeviceOptions(Unit, Options={}):
     if Unit in Devices:
-        Devices[Unit].Update(nValue=Devices[Unit].nValue, sValue=Devices[Unit].sValue, Options=Options)
-        Domoticz.Debug("Update options " + Devices[Unit].Name + ": " + str(Options))
+        if Devices[Unit].Options != Options:
+            Devices[Unit].Update(nValue=Devices[Unit].nValue,
+                                 sValue=Devices[Unit].sValue, Options=Options)
+            Domoticz.Debug("Device Options update: {} = {}".format(
+                Devices[Unit].Name, Options))
+
+
+def UpdateDeviceImage(Unit, Image):
+    if Unit in Devices and Image in Images:
+        if Devices[Unit].Image != Images[Image].ID:
+            Devices[Unit].Update(nValue=Devices[Unit].nValue,
+                                 sValue=Devices[Unit].sValue, Image=Images[Image].ID)
+            Domoticz.Debug("Device Image update: {} = {}".format(
+                Devices[Unit].Name, Images[Image].ID))
 
 # --------------------------------------------------------------------------------
 
@@ -394,5 +466,14 @@ def getVoltage(p):
         except:
             res = "0"
     else:
+        res = "0"
+    return float(res)
+
+# ps aux | grep domoticz | awk '{sum=sum+$6}; END {print sum}'
+def getDomoticzMemory():
+    try:
+        res = os.popen(
+            "ps aux | grep domoticz | awk '{sum=sum+$6}; END {print sum}'").readline().replace("\n", "")
+    except:
         res = "0"
     return float(res)

@@ -28,3 +28,4 @@ The following parameters are displayed:
 | SDRAM C voltage | SDRAM C voltage
 | SDRAM I voltage | SDRAM I voltage
 | SDRAM P voltage | SDRAM P voltage
+| Domoticz memory | Amount of memory used by Domoticz
