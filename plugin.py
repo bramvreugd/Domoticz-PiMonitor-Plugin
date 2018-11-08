@@ -28,18 +28,30 @@ class BasePlugin:
     __MINUTES = 1
 
     # Device units
-    _UNITS = {
-        "CPUTEMP":      1,
-        "GPUTEMP":      2,
-        "RAMUSE":       3,
-        "CPUUSE":       4,
-        "CPUSPEED":     5,
-        "UPTIME":       6,
-        "CPUMEMORY":    7,
-        "GPUMEMORY":    8,
-        "CPUCOUNT":     9,
-        "CONNECTIONS":  10,
-        }
+    __UNIT_CPUTEMP = 1
+    __UNIT_GPUTEMP = 2
+    __UNIT_RAMUSE = 3
+    __UNIT_CPUUSE = 4
+    __UNIT_CPUSPEED = 5
+    __UNIT_UPTIME = 6
+    __UNIT_CPUMEMORY = 7
+    __UNIT_GPUMEMORY = 8
+    __UNIT_CPUCOUNT = 9
+    __UNIT_CONNECTIONS = 10
+
+    __UNITS = [
+        # Unit, Name, Type, Subtype, Options, Used
+        [__UNIT_CPUTEMP, "CPU temperature", 243, 31, {"Custom": "0;°C"}, 1],
+        [__UNIT_GPUTEMP, "GPU temperature", 243, 31, {"Custom": "0;°C"}, 1],
+        [__UNIT_RAMUSE, "Memory usage", 243, 31, {"Custom": "0;%"}, 1],
+        [__UNIT_CPUUSE, "CPU usage", 243, 31, {"Custom": "0;%"}, 1],
+        [__UNIT_CPUSPEED, "CPU speed", 243, 31, {"Custom": "0;Mhz"}, 1],
+        [__UNIT_UPTIME, "Up time", 243, 31, {"Custom": "0;sec"}, 1],
+        [__UNIT_CPUMEMORY, "CPU memory", 243, 31, {"Custom": "0;MB"}, 1],
+        [__UNIT_GPUMEMORY, "GPU memory", 243, 31, {"Custom": "0;MB"}, 1],
+        [__UNIT_CPUCOUNT, "CPU count", 243, 31, {}, 1],
+        [__UNIT_CONNECTIONS, "Connections", 243, 31, {"Custom": "0;"}, 1],
+    ]
 
     def __init__(self):
         self.__runAgain = 0
@@ -60,16 +72,14 @@ class BasePlugin:
         Domoticz.Debug("Image created. ID: "+str(image))
         # Create devices
         if len(Devices) == 0:
-            Domoticz.Device(Unit=self._UNITS["CPUTEMP"], Name="CPU temperature", TypeName="Custom", Options={"Custom": "1;°C"}, Image=image, Used=1).Create()
-            Domoticz.Device(Unit=self._UNITS["GPUTEMP"], Name="GPU temperature", TypeName="Custom", Options={"Custom": "1;°C"}, Image=image, Used=1).Create()
-            Domoticz.Device(Unit=self._UNITS["GPUMEMORY"], Name="GPU memory", TypeName="Custom", Options={"Custom": "1;MB"}, Image=image, Used=1).Create()
-            Domoticz.Device(Unit=self._UNITS["CPUMEMORY"], Name="CPU memory", TypeName="Custom", Options={"Custom": "1;MB"}, Image=image, Used=1).Create()
-            Domoticz.Device(Unit=self._UNITS["CPUUSE"], Name="CPU usage", TypeName="Custom", Options={"Custom": "1;%"}, Image=image, Used=1).Create()
-            Domoticz.Device(Unit=self._UNITS["RAMUSE"], Name="Memory usage", TypeName="Custom", Options={"Custom": "1;%"}, Image=image, Used=1).Create()
-            Domoticz.Device(Unit=self._UNITS["CPUSPEED"], Name="CPU speed", TypeName="Custom", Options={"Custom": "1;Mhz"}, Image=image, Used=1).Create()
-            Domoticz.Device(Unit=self._UNITS["UPTIME"], Name="Up time", TypeName="Custom", Options={"Custom": "1;sec"}, Image=image, Used=1).Create()
-            Domoticz.Device(Unit=self._UNITS["CONNECTIONS"], Name="Connections", TypeName="Custom", Options={"Custom": "1;"}, Image=image, Used=1).Create()
-            Domoticz.Device(Unit=self._UNITS["CPUCOUNT"], Name="CPU count", TypeName="Custom", Image=image, Used=1).Create()
+            for unit in self.__UNITS:
+                Domoticz.Device(Unit=unit[0],
+                                Name=unit[1],
+                                Type=unit[2],
+                                Subtype=unit[3],
+                                Options=unit[4],
+                                Used=unit[5],
+                                Image=image).Create()
         # Log config
         DumpConfigToLog()
         # Connection
@@ -103,56 +113,64 @@ class BasePlugin:
             #
             fnumber = getCPUcount()
             Domoticz.Debug("CPU count...: "+str(fnumber)+"")
-            UpdateDevice(self._UNITS["CPUCOUNT"], int(fnumber), str(fnumber), AlwaysUpdate=True)
+            UpdateDevice(self.__UNIT_CPUCOUNT, int(fnumber),
+                         str(fnumber), AlwaysUpdate=True)
             #
             fnumber = getCPUtemperature()
             Domoticz.Debug("CPU temp....: "+str(fnumber)+" &deg;C")
-            UpdateDevice(self._UNITS["CPUTEMP"], int(fnumber), str(fnumber), AlwaysUpdate=True)
+            UpdateDevice(self.__UNIT_CPUTEMP, int(fnumber),
+                         str(fnumber), AlwaysUpdate=True)
             #
             fnumber = getGPUtemperature()
             Domoticz.Debug("GPU temp....: "+str(fnumber)+" &deg;C")
-            UpdateDevice(self._UNITS["GPUTEMP"], int(fnumber), str(fnumber), AlwaysUpdate=True)
+            UpdateDevice(self.__UNIT_GPUTEMP, int(fnumber),
+                         str(fnumber), AlwaysUpdate=True)
             #
             fnumber = getGPUmemory()
             Domoticz.Debug("GPU memory..: "+str(fnumber)+" Mb")
-            UpdateDevice(self._UNITS["GPUMEMORY"], int(fnumber), str(fnumber), AlwaysUpdate=True)
+            UpdateDevice(self.__UNIT_GPUMEMORY, int(fnumber),
+                         str(fnumber), AlwaysUpdate=True)
             #
             fnumber = getCPUmemory()
             Domoticz.Debug("CPU memory..: "+str(fnumber)+" Mb")
-            UpdateDevice(self._UNITS["CPUMEMORY"], int(fnumber), str(fnumber), AlwaysUpdate=True)
+            UpdateDevice(self.__UNIT_CPUMEMORY, int(fnumber),
+                         str(fnumber), AlwaysUpdate=True)
             #
             fnumber = getCPUuse()
             Domoticz.Debug("CPU use.....: "+str(fnumber)+" &#37;")
-            UpdateDevice(self._UNITS["CPUUSE"], int(fnumber), str(fnumber), AlwaysUpdate=True)
+            UpdateDevice(self.__UNIT_CPUUSE, int(fnumber),
+                         str(fnumber), AlwaysUpdate=True)
             #
             fnumber = getRAMinfo()
             Domoticz.Debug("RAM use.....: "+str(fnumber)+" &#37;")
-            UpdateDevice(self._UNITS["RAMUSE"], int(fnumber), str(fnumber), AlwaysUpdate=True)
+            UpdateDevice(self.__UNIT_RAMUSE, int(fnumber),
+                         str(fnumber), AlwaysUpdate=True)
             #
             fnumber = getCPUcurrentSpeed()
             Domoticz.Debug("CPU speed...: "+str(fnumber)+" Mhz")
-            UpdateDevice(self._UNITS["CPUSPEED"], int(fnumber), str(fnumber), AlwaysUpdate=True)
+            UpdateDevice(self.__UNIT_CPUSPEED, int(fnumber),
+                         str(fnumber), AlwaysUpdate=True)
             #
             res = getCPUuptime()  # in sec
             Domoticz.Debug("Up time.....: "+str(res)+" sec")
             # if res < 60:
             fnumber = round( res, 2 )
-            UpdateDeviceOptions(self._UNITS["UPTIME"], {"Custom": "0;s"})
+            UpdateDeviceOptions(self.__UNIT_UPTIME, {"Custom": "0;s"})
             if res >= 60:
                 fnumber = round(res / (60), 2)
-                UpdateDeviceOptions(self._UNITS["UPTIME"], {"Custom": "0;min"})
+                UpdateDeviceOptions(self.__UNIT_UPTIME, {"Custom": "0;min"})
             if res >= 60 * 60:
                 fnumber = round(res / (60 * 60), 2)
-                UpdateDeviceOptions(self._UNITS["UPTIME"], {"Custom": "0;h"})
+                UpdateDeviceOptions(self.__UNIT_UPTIME, {"Custom": "0;h"})
             if res >= 60 * 60 * 24:
                 fnumber = round( res / ( 60 * 60 * 24 ), 2 )
-                UpdateDeviceOptions(self._UNITS["UPTIME"], {"Custom": "0;d"})
-            UpdateDevice(self._UNITS["UPTIME"], int(fnumber), str(fnumber), AlwaysUpdate=True)
+                UpdateDeviceOptions(self.__UNIT_UPTIME, {"Custom": "0;d"})
+            UpdateDevice(self.__UNIT_UPTIME, int(fnumber), str(fnumber), AlwaysUpdate=True)
             #
             inumber = getNetworkConnections("ESTABLISHED")
             #inumber = getNetworkConnections("CLOSE_WAIT")
             Domoticz.Debug("Connections.....: "+str(res))
-            UpdateDevice(self._UNITS["CONNECTIONS"], inumber, str(inumber), AlwaysUpdate=True)
+            UpdateDevice(self.__UNIT_CONNECTIONS, inumber, str(inumber), AlwaysUpdate = True)
         else:
             Domoticz.Debug("onHeartbeat called, run again in " + str(self.__runAgain) + " heartbeats.")
 
