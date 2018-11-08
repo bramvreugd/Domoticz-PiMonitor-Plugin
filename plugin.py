@@ -4,12 +4,8 @@
 #
 # Author: Xorfor
 """
-<plugin key="xfr-pimonitor" name="PiMonitor" author="Xorfor" version="1.1.0" wikilink="https://github.com/Xorfor/Domoticz-PiMonitor-Plugin">
+<plugin key="xfr-pimonitor" name="PiMonitor" author="Xorfor" version="2.0.0" wikilink="https://github.com/Xorfor/Domoticz-PiMonitor-Plugin">
     <params>
-        <!--
-        <param field="Address" label="IP Address" width="200px" required="true" default="127.0.0.1"/>
-        <param field="Port" label="Port" width="30px" required="true" default="80"/>
-        -->
         <param field="Mode6" label="Debug" width="75px">
             <options>
                 <option label="True" value="Debug"/>
@@ -38,6 +34,10 @@ class BasePlugin:
     __UNIT_GPUMEMORY = 8
     __UNIT_CPUCOUNT = 9
     __UNIT_CONNECTIONS = 10
+    __UNIT_COREVOLTAGE = 11
+    __UNIT_SDRAMCVOLTAGE = 12
+    __UNIT_SDRAMIVOLTAGE = 13
+    __UNIT_SDRAMPVOLTAGE = 14
 
     __UNITS = [
         # Unit, Name, Type, Subtype, Options, Used
@@ -50,7 +50,11 @@ class BasePlugin:
         [__UNIT_CPUMEMORY, "CPU memory", 243, 31, {"Custom": "0;MB"}, 1],
         [__UNIT_GPUMEMORY, "GPU memory", 243, 31, {"Custom": "0;MB"}, 1],
         [__UNIT_CPUCOUNT, "CPU count", 243, 31, {}, 1],
-        [__UNIT_CONNECTIONS, "Connections", 243, 31, {"Custom": "0;"}, 1],
+        [__UNIT_CONNECTIONS, "Connections", 243, 31, {}, 1],
+        [__UNIT_COREVOLTAGE, "Core voltage", 243, 31, {"Custom": "0;V"}, 1],
+        [__UNIT_SDRAMCVOLTAGE, "SDRAM C voltage", 243, 31, {"Custom": "0;V"}, 1],
+        [__UNIT_SDRAMIVOLTAGE, "SDRAM I voltage", 243, 31, {"Custom": "0;V"}, 1],
+        [__UNIT_SDRAMPVOLTAGE, "SDRAM P voltage", 243, 31, {"Custom": "0;V"}, 1],
     ]
 
     def __init__(self):
@@ -149,6 +153,26 @@ class BasePlugin:
             fnumber = getCPUcurrentSpeed()
             Domoticz.Debug("CPU speed...: "+str(fnumber)+" Mhz")
             UpdateDevice(self.__UNIT_CPUSPEED, int(fnumber),
+                         str(fnumber), AlwaysUpdate=True)
+            #
+            fnumber = round(getVoltage("core"), 2 )
+            Domoticz.Debug("Core voltage...: {} V".format(fnumber))
+            UpdateDevice(self.__UNIT_COREVOLTAGE, int(fnumber),
+                         str(fnumber), AlwaysUpdate=True)
+            #
+            fnumber = round(getVoltage("sdram_c"), 2)
+            Domoticz.Debug("SDRAM C...: {} V".format(fnumber))
+            UpdateDevice(self.__UNIT_SDRAMCVOLTAGE, int(fnumber),
+                         str(fnumber), AlwaysUpdate=True)
+            #
+            fnumber = round(getVoltage("sdram_i"), 2 )
+            Domoticz.Debug("SDRAM I...: {} V".format(fnumber))
+            UpdateDevice(self.__UNIT_SDRAMIVOLTAGE, int(fnumber),
+                         str(fnumber), AlwaysUpdate=True)
+            #
+            fnumber = round(getVoltage("sdram_p"), 2 )
+            Domoticz.Debug("SDRAM P...: {} V".format(fnumber))
+            UpdateDevice(self.__UNIT_SDRAMPVOLTAGE, int(fnumber),
                          str(fnumber), AlwaysUpdate=True)
             #
             res = getCPUuptime()  # in sec
@@ -359,3 +383,16 @@ def getUpStats():
         return up
     except:
         return ""
+
+# Get voltage
+# Based on: https://www.raspberrypi.org/forums/viewtopic.php?t=30697
+def getVoltage(p):
+    if p in ["core", "sdram_c", "sdram_i", "sdram_p"]:
+        try:
+            res = os.popen(
+                "/opt/vc/bin/vcgencmd measure_volts {}".format(p)).readline().replace("volt=", "").replace("V", "")
+        except:
+            res = "0"
+    else:
+        res = "0"
+    return float(res)
