@@ -29,3 +29,4 @@ The following parameters are displayed:
 | SDRAM I voltage | SDRAM I voltage
 | SDRAM P voltage | SDRAM P voltage
 | Domoticz memory | Amount of memory used by Domoticz
+| Throttled       | Throttled

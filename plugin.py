@@ -4,7 +4,7 @@
 #
 # Author: Xorfor
 """
-<plugin key="xfr-pimonitor" name="PiMonitor" author="Xorfor" version="2.0.0" wikilink="https://github.com/Xorfor/Domoticz-PiMonitor-Plugin">
+<plugin key="xfr-pimonitor" name="PiMonitor" author="Xorfor" version="2.1.0" wikilink="https://github.com/Xorfor/Domoticz-PiMonitor-Plugin">
     <params>
         <param field="Mode6" label="Debug" width="75px">
             <options>
