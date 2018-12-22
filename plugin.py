@@ -18,6 +18,7 @@
 import Domoticz
 import os
 
+
 class BasePlugin:
 
     __HEARTBEATS2MIN = 6
@@ -39,6 +40,7 @@ class BasePlugin:
     __UNIT_SDRAMIVOLTAGE = 13
     __UNIT_SDRAMPVOLTAGE = 14
     __UNIT_DOMOTICZMEMORY = 15
+    __UNIT_THROTTLED = 16
 
     __UNITS = [
         # Unit, Name, Type, Subtype, Options, Used
@@ -53,10 +55,15 @@ class BasePlugin:
         [__UNIT_CPUCOUNT, "CPU count", 243, 31, {}, 1],
         [__UNIT_CONNECTIONS, "Connections", 243, 31, {}, 1],
         [__UNIT_COREVOLTAGE, "Core voltage", 243, 31, {"Custom": "0;V"}, 1],
-        [__UNIT_SDRAMCVOLTAGE, "SDRAM C voltage", 243, 31, {"Custom": "0;V"}, 1],
-        [__UNIT_SDRAMIVOLTAGE, "SDRAM I voltage", 243, 31, {"Custom": "0;V"}, 1],
-        [__UNIT_SDRAMPVOLTAGE, "SDRAM P voltage", 243, 31, {"Custom": "0;V"}, 1],
-        [__UNIT_DOMOTICZMEMORY, "Domoticz memory", 243, 31, {"Custom": "0;KB"}, 1],
+        [__UNIT_SDRAMCVOLTAGE, "SDRAM C voltage",
+            243, 31, {"Custom": "0;V"}, 1],
+        [__UNIT_SDRAMIVOLTAGE, "SDRAM I voltage",
+            243, 31, {"Custom": "0;V"}, 1],
+        [__UNIT_SDRAMPVOLTAGE, "SDRAM P voltage",
+            243, 31, {"Custom": "0;V"}, 1],
+        [__UNIT_DOMOTICZMEMORY, "Domoticz memory",
+            243, 31, {"Custom": "0;KB"}, 1],
+        [__UNIT_THROTTLED, "Throttled", 243, 31, {}, 1],
     ]
 
     def __init__(self):
@@ -117,67 +124,67 @@ class BasePlugin:
             # Execute your command
             #
             fnumber = getCPUcount()
-            Domoticz.Debug("CPU count...: {}".format(fnumber))
+            Domoticz.Debug("CPU count .........: {}".format(fnumber))
             UpdateDevice(self.__UNIT_CPUCOUNT, int(fnumber),
                          str(fnumber), AlwaysUpdate=True)
             #
             fnumber = getCPUtemperature()
-            Domoticz.Debug("CPU temp....: {} °C".format(fnumber))
+            Domoticz.Debug("CPU temp ..........: {} °C".format(fnumber))
             UpdateDevice(self.__UNIT_CPUTEMP, int(fnumber),
                          str(fnumber), AlwaysUpdate=True)
             #
             fnumber = getGPUtemperature()
-            Domoticz.Debug("GPU temp....: {} °C".format(fnumber))
+            Domoticz.Debug("GPU temp ..........: {} °C".format(fnumber))
             UpdateDevice(self.__UNIT_GPUTEMP, int(fnumber),
                          str(fnumber), AlwaysUpdate=True)
             #
             fnumber = getGPUmemory()
-            Domoticz.Debug("GPU memory..: {} Mb".format(fnumber))
+            Domoticz.Debug("GPU memory ........: {} Mb".format(fnumber))
             UpdateDevice(self.__UNIT_GPUMEMORY, int(fnumber),
                          str(fnumber), AlwaysUpdate=True)
             #
             fnumber = getCPUmemory()
-            Domoticz.Debug("CPU memory..: {} Mb".format(fnumber))
+            Domoticz.Debug("CPU memory ........: {} Mb".format(fnumber))
             UpdateDevice(self.__UNIT_CPUMEMORY, int(fnumber),
                          str(fnumber), AlwaysUpdate=True)
             #
             fnumber = getCPUuse()
-            Domoticz.Debug("CPU use.....: {} %".format(fnumber))
+            Domoticz.Debug("CPU use ...........: {} %".format(fnumber))
             UpdateDevice(self.__UNIT_CPUUSE, int(fnumber),
                          str(fnumber), AlwaysUpdate=True)
             #
             fnumber = getRAMinfo()
-            Domoticz.Debug("RAM use.....: {} %".format(fnumber))
+            Domoticz.Debug("RAM use ...........: {} %".format(fnumber))
             UpdateDevice(self.__UNIT_RAMUSE, int(fnumber),
                          str(fnumber), AlwaysUpdate=True)
             #
             fnumber = getCPUcurrentSpeed()
-            Domoticz.Debug("CPU speed...: {} Mhz".format(fnumber))
+            Domoticz.Debug("CPU speed .........: {} Mhz".format(fnumber))
             UpdateDevice(self.__UNIT_CPUSPEED, int(fnumber),
                          str(fnumber), AlwaysUpdate=True)
             #
-            fnumber = round(getVoltage("core"), 2 )
-            Domoticz.Debug("Core voltage...: {} V".format(fnumber))
+            fnumber = round(getVoltage("core"), 2)
+            Domoticz.Debug("Core voltage ......: {} V".format(fnumber))
             UpdateDevice(self.__UNIT_COREVOLTAGE, int(fnumber),
                          str(fnumber), AlwaysUpdate=True)
             #
             fnumber = round(getVoltage("sdram_c"), 2)
-            Domoticz.Debug("SDRAM C...: {} V".format(fnumber))
+            Domoticz.Debug("SDRAM C ...........: {} V".format(fnumber))
             UpdateDevice(self.__UNIT_SDRAMCVOLTAGE, int(fnumber),
                          str(fnumber), AlwaysUpdate=True)
             #
-            fnumber = round(getVoltage("sdram_i"), 2 )
-            Domoticz.Debug("SDRAM I...: {} V".format(fnumber))
+            fnumber = round(getVoltage("sdram_i"), 2)
+            Domoticz.Debug("SDRAM I ...........: {} V".format(fnumber))
             UpdateDevice(self.__UNIT_SDRAMIVOLTAGE, int(fnumber),
                          str(fnumber), AlwaysUpdate=True)
             #
-            fnumber = round(getVoltage("sdram_p"), 2 )
-            Domoticz.Debug("SDRAM P...: {} V".format(fnumber))
+            fnumber = round(getVoltage("sdram_p"), 2)
+            Domoticz.Debug("SDRAM P ...........: {} V".format(fnumber))
             UpdateDevice(self.__UNIT_SDRAMPVOLTAGE, int(fnumber),
                          str(fnumber), AlwaysUpdate=True)
             #
             res = getCPUuptime()  # in sec
-            Domoticz.Debug("Up time.....: {} sec".format(res))
+            Domoticz.Debug("Up time ...........: {} sec".format(res))
             # if res < 60:
             fnumber = round(res, 2)
             options = {"Custom": "0;s"}
@@ -195,52 +202,69 @@ class BasePlugin:
                 options = {"Custom": "0;d"}
                 # UpdateDeviceOptions(self.__UNIT_UPTIME, {"Custom": "0;d"})
             UpdateDeviceOptions(self.__UNIT_UPTIME, options)
-            UpdateDevice(self.__UNIT_UPTIME, int(fnumber), str(fnumber), AlwaysUpdate=True)
+            UpdateDevice(self.__UNIT_UPTIME, int(fnumber),
+                         str(fnumber), AlwaysUpdate=True)
             #
             inumber = getNetworkConnections("ESTABLISHED")
             #inumber = getNetworkConnections("CLOSE_WAIT")
-            Domoticz.Debug("Connections.....: {}".format(inumber))
-            UpdateDevice(self.__UNIT_CONNECTIONS, inumber, str(inumber), AlwaysUpdate=True)
+            Domoticz.Debug("Connections .......: {}".format(inumber))
+            UpdateDevice(self.__UNIT_CONNECTIONS, inumber,
+                         str(inumber), AlwaysUpdate=True)
             #
             fnumber = getDomoticzMemory()
-            Domoticz.Debug("Domoticz memory...: {} KB".format(fnumber))
+            Domoticz.Debug("Domoticz memory ...: {} KB".format(fnumber))
             UpdateDevice(self.__UNIT_DOMOTICZMEMORY, int(fnumber),
                          str(fnumber), AlwaysUpdate=True)
+            #
+            inumber = getThrottled()
+            Domoticz.Debug("Throttled .........: {}".format(inumber))
+            UpdateDevice(self.__UNIT_THROTTLED, inumber,
+                         str(inumber), AlwaysUpdate=True)
             #
         else:
             Domoticz.Debug(
                 "onHeartbeat called, run again in {} heartbeats.".format(self.__runAgain))
 
+
 global _plugin
 _plugin = BasePlugin()
+
 
 def onStart():
     global _plugin
     _plugin.onStart()
 
+
 def onStop():
     global _plugin
     _plugin.onStop()
+
 
 def onConnect(Connection, Status, Description):
     global _plugin
     _plugin.onConnect(Connection, Status, Description)
 
+
 def onMessage(Connection, Data):
     global _plugin
     _plugin.onMessage(Connection, Data)
+
 
 def onCommand(Unit, Command, Level, Hue):
     global _plugin
     _plugin.onCommand(Unit, Command, Level, Hue)
 
+
 def onNotification(Name, Subject, Text, Status, Priority, Sound, ImageFile):
     global _plugin
-    _plugin.onNotification(Name, Subject, Text, Status, Priority, Sound, ImageFile)
+    _plugin.onNotification(Name, Subject, Text, Status,
+                           Priority, Sound, ImageFile)
+
 
 def onDisconnect(Connection):
     global _plugin
     _plugin.onDisconnect(Connection)
+
 
 def onHeartbeat():
     global _plugin
@@ -249,6 +273,8 @@ def onHeartbeat():
 ################################################################################
 # Generic helper functions
 ################################################################################
+
+
 def DumpDevicesToLog():
     # Show devices
     Domoticz.Debug("Device count.........: {}".format(len(Devices)))
@@ -341,26 +367,63 @@ def UpdateDeviceImage(Unit, Image):
 
 # --------------------------------------------------------------------------------
 
+
+options = {
+    "measure_temp": ["temp", "'C"],
+    "get_mem gpu": ["gpu", "M"],
+    "get_mem arm": ["arm", "M"],
+    "measure_volts core": ["volt", "V"],
+    "measure_volts sdram_c": ["volt", "V"],
+    "measure_volts sdram_i": ["volt", "V"],
+    "measure_volts sdram_p": ["volt", "V"],
+    "get_throttled": ["throttled", "x0"],
+}
+
+
+def vcgencmd(option):
+    if option in options:
+        cmd = "/opt/vc/bin/vcgencmd {}".format(option)
+        Domoticz.Debug("cmd: {}".format(cmd))
+        try:
+            res = os.popen(cmd).readline()
+            Domoticz.Debug("res: {}".format(res))
+            res = res.replace("{}=".format(options[option][0]), "")
+            res = res.replace("{}\n".format(options[option][1]), "")
+            Domoticz.Debug("res (replaced): {}".format(res))
+        except:
+            res = "0"
+    else:
+        res = "0"
+    return float(res)
+
+
+# --------------------------------------------------------------------------------
+
 global _last_idle, _last_total
 _last_idle = _last_total = 0
 
 # Return % of CPU used by user
 # Based on: https://rosettacode.org/wiki/Linux_CPU_utilization#Python
+
+
 def getCPUuse():
     global _last_idle, _last_total
     try:
         with open('/proc/stat') as f:
-            fields = [float(column) for column in f.readline().strip().split()[1:]]
+            fields = [float(column)
+                      for column in f.readline().strip().split()[1:]]
         idle, total = fields[3], sum(fields)
         idle_delta, total_delta = idle - _last_idle, total - _last_total
         _last_idle, _last_total = idle, total
-        res = round(100.0 * (1.0 - idle_delta / total_delta), 2 )
+        res = round(100.0 * (1.0 - idle_delta / total_delta), 2)
     except:
         res = 0.0
     return res
 
+
 def getCPUcount():
     return os.cpu_count()
+
 
 def getCPUuptime():
     try:
@@ -372,8 +435,8 @@ def getCPUuptime():
     return res
 
 
-# Return number of network connections
 def getNetworkConnections(state):
+    # Return number of network connections
     res = 0
     try:
         for line in os.popen("netstat -tun").readlines():
@@ -383,47 +446,54 @@ def getNetworkConnections(state):
         res = 0
     return res
 
-# Return GPU temperature
+
 def getGPUtemperature():
-    try:
-        res = os.popen("/opt/vc/bin/vcgencmd measure_temp").readline().replace("temp=", "").replace("'C\n", "")
-    except:
-        res = "0"
-    return float(res)
+    # Return GPU temperature
+    return float(vcgencmd("measure_temp"))
+
 
 def getGPUmemory():
-    try:
-        res = os.popen("/opt/vc/bin/vcgencmd get_mem gpu").readline().replace("gpu=", "").replace("M\n", "")
-    except:
-        res = "0"
-    return float(res)
+    # Return GPU memory size
+    return float(vcgencmd("get_mem gpu"))
 
-def getCPUmemory():
-    try:
-        res = os.popen("/opt/vc/bin/vcgencmd get_mem arm").readline().replace("arm=", "").replace("M\n", "")
-    except:
-        res = "0"
-    return float(res)
 
-# Return GPU temperature
 def getCPUtemperature():
+    # Return CPU temperature
     try:
         res = os.popen("cat /sys/class/thermal/thermal_zone0/temp").readline()
     except:
         res = "0"
-    return round(float(res)/1000,1)
+    return round(float(res)/1000, 1)
 
-# Return CPU speed in Mhz
+
+def getCPUmemory():
+    # Return CPU memory size
+    return float(vcgencmd("get_mem arm"))
+
+
 def getCPUcurrentSpeed():
+    # Return CPU speed in Mhz
     try:
-        res = os.popen("cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq").readline()
+        res = os.popen(
+            "cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq").readline()
     except:
         res = "0"
     return round(int(res)/1000)
 
-# Return RAM information in a list
-# Based on: https://gist.github.com/funvill/5252169
+
+def getDomoticzMemory():
+    # ps aux | grep domoticz | awk '{sum=sum+$6}; END {print sum}'
+    try:
+        res = os.popen(
+            "ps aux | grep domoticz | awk '{sum=sum+$6}; END {print sum}'").readline().replace("\n", "")
+    except:
+        res = "0"
+    return float(res)
+
+
 def getRAMinfo():
+    # Return RAM information in a list
+    # Based on: https://gist.github.com/funvill/5252169
     p = os.popen("free -b")
     i = 0
     while 1:
@@ -434,21 +504,26 @@ def getRAMinfo():
             # Index 0: total RAM
             # Index 1: used RAM
             # Index 2: free RAM
-            return round(100 * int(res[1]) / int(res[0]), 2 )
+            return round(100 * int(res[1]) / int(res[0]), 2)
 # http://www.microcasts.tv/episodes/2014/03/15/memory-usage-on-the-raspberry-pi/
 # https://www.raspberrypi.org/forums/viewtopic.php?f=63&t=164787
 # https://stackoverflow.com/questions/22102999/get-total-physical-memory-in-python/28161352
 # https://stackoverflow.com/questions/17718449/determine-free-ram-in-python
 # https://www.reddit.com/r/raspberry_pi/comments/60h5qv/trying_to_make_a_system_info_monitor_with_an_lcd/
 
-# Get uptime of RPi
-# Based on: http://cagewebdev.com/raspberry-pi-showing-some-system-info-with-a-python-script/
+
+def getThrottled():
+    return int(vcgencmd("throttled"))
+
+
 def getUpStats():
-    #Returns a tuple (uptime, 5 min load average)
+    # Get uptime of RPi
+    # Based on: http://cagewebdev.com/raspberry-pi-showing-some-system-info-with-a-python-script/
+    # Returns a tuple (uptime, 5 min load average)
     try:
         s = os.popen("uptime").readline()
         load_split = s.split("load average: ")
-        load_five = float(load_split[1].split(",")[1])
+        # load_five = float(load_split[1].split(",")[1])
         up = load_split[0]
         up_pos = up.rfind(",", 0, len(up)-4)
         up = up[:up_pos].split("up ")[1]
@@ -456,24 +531,12 @@ def getUpStats():
     except:
         return ""
 
-# Get voltage
-# Based on: https://www.raspberrypi.org/forums/viewtopic.php?t=30697
-def getVoltage(p):
-    if p in ["core", "sdram_c", "sdram_i", "sdram_p"]:
-        try:
-            res = os.popen(
-                "/opt/vc/bin/vcgencmd measure_volts {}".format(p)).readline().replace("volt=", "").replace("V", "")
-        except:
-            res = "0"
-    else:
-        res = "0"
-    return float(res)
 
-# ps aux | grep domoticz | awk '{sum=sum+$6}; END {print sum}'
-def getDomoticzMemory():
-    try:
-        res = os.popen(
-            "ps aux | grep domoticz | awk '{sum=sum+$6}; END {print sum}'").readline().replace("\n", "")
-    except:
+def getVoltage(p):
+    # Get voltage
+    # Based on: https://www.raspberrypi.org/forums/viewtopic.php?t=30697
+    if p in ["core", "sdram_c", "sdram_i", "sdram_p"]:
+        res = vcgencmd("measure_volts {}".format(p))
+    else:
         res = "0"
     return float(res)
