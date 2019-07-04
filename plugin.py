@@ -4,7 +4,7 @@
 #
 # Author: Xorfor
 """
-<plugin key="xfr-pimonitor" name="PiMonitor" author="Xorfor" version="2.1.0" wikilink="https://github.com/Xorfor/Domoticz-PiMonitor-Plugin">
+<plugin key="xfr-pimonitor" name="PiMonitor" author="Xorfor" version="3.0" wikilink="https://github.com/Xorfor/Domoticz-PiMonitor-Plugin">
     <params>
         <param field="Mode6" label="Debug" width="75px">
             <options>
@@ -41,6 +41,7 @@ class BasePlugin:
     __UNIT_SDRAMPVOLTAGE = 14
     __UNIT_DOMOTICZMEMORY = 15
     __UNIT_THROTTLED = 16
+    __UNIT_INFO = 17
 
     __UNITS = [
         # Unit, Name, Type, Subtype, Options, Used
@@ -64,11 +65,81 @@ class BasePlugin:
         [__UNIT_DOMOTICZMEMORY, "Domoticz memory",
             243, 31, {"Custom": "0;KB"}, 1],
         [__UNIT_THROTTLED, "Throttled", 243, 31, {}, 1],
+        [__UNIT_INFO, "Info", 243, 19, {}, 1],
     ]
 
+    STYLE_OLD = 0
+    STYLE_NEW = 1
+
+    # Old
+    OLD_STYLE = {
+        # Code	Type	Revision	RAM	                Manufacturer    Processor
+        0x0002:	["B",	"1.0",	    "256 MB",	        "Egoman",       "BCM2835"],
+        0x0003:	["B",	"1.0",	    "256 MB",    	    "Egoman",       "BCM2835"],
+        0x0004:	["B",	"2.0",	    "256 MB",    	    "Sony UK",      "BCM2835"],
+        0x0005:	["B",	"2.0",	    "256 MB",    	    "Qisda",        "BCM2835"],
+        0x0006:	["B",	"2.0",	    "256 MB",    	    "Egoman",       "BCM2835"],
+        0x0007:	["A",	"2.0",  	"256 MB",    	    "Egoman",       "BCM2835"],
+        0x0008:	["A",	"2.0",  	"256 MB",    	    "Sony UK",      "BCM2835"],
+        0x0009:	["A",	"2.0",     	"256 MB",    	    "Qisda",        "BCM2835"],
+        0x000d:	["B",	"2.0",     	"512 MB",    	    "Egoman",       "BCM2835"],
+        0x000e:	["B",	"2.0",  	"512 MB",    	    "Sony UK",      "BCM2835"],
+        0x000f:	["B",	"2.0",  	"512 MB",    	    "Egoman",       "BCM2835"],
+        0x0010:	["B+",  "1.2",  	"512 MB",	        "Sony UK",      "BCM2835"],
+        0x0011:	["CM1",	"1.0",  	"512 MB",    	    "Sony UK",      "BCM2835"],
+        0x0012:	["A+",  "1.1",  	"256 MB",    	    "Sony UK",      "BCM2835"],
+        0x0013:	["B+",  "1.2",  	"512 MB",    	    "Embest",       "BCM2835"],
+        0x0014:	["CM1",	"1.0",    	"512 MB",       	"Embest",       "BCM2835"],
+        0x0015:	["A+",  "1.1",      "256 MB/512 MB",    "Embest",       "BCM2835"],
+    }
+
+    # New
+    MEMORY_SIZE = {
+        0: "256 MB",
+        1: "512 MB",
+        2: "1 GB",
+        3: "2 GB",
+        4: "4 GB",
+    }
+
+    MANUFACTURER = {
+        0: "Sony UK",
+        1: "Egoman",
+        2: "Embest",
+        3: "Sony Japan",
+        4: "Embest",
+        5: "Stadium",
+    }
+
+    PROCESSOR = {
+        0: "BCM2835",
+        1: "BCM2836",
+        2: "BCM2837",
+        3: "BCM2711",
+    }
+
+    TYPE = {
+        0x00000000: "A",
+        0x00000001: "B",
+        0x00000002: "A+",
+        0x00000003: "B+",
+        0x00000004: "2B",
+        0x00000005: "Alpha(early prototype)",
+        0x00000006: "CM1",
+        0x00000008: "3B",
+        0x00000009: "Zero",
+        0x0000000a: "CM3",
+        0x0000000c: "Zero W",
+        0x0000000d: "3B",
+        0x0000000e: "3A+",
+        0x0000000f: "Internal use only",
+        0x00000010: "CM3+",
+        0x00000011: "4B",
+    }
+
     def __init__(self):
+        Domoticz.Status("PiMonitor 3.0")
         self.__runAgain = 0
-        return
 
     def onStart(self):
         Domoticz.Debug("onStart called")
@@ -95,6 +166,39 @@ class BasePlugin:
                                 Image=image).Create()
         # Log config
         DumpAllToLog()
+        res = getPiRevision()
+        # https://www.raspberrypi.org/documentation/hardware/raspberrypi/revision-codes/README.md
+        # uuuuuuuuFMMMCCCCPPPPTTTTTTTTRRRR
+        #         ||  |   |   |          +--- Revision
+        #         ||  |   |   +-------------- Type
+        #         ||  |   +------------------ Processor
+        #         ||  +---------------------- Manufacturer
+        #         |+------------------------- Memory size
+        #         +-------------------------- New flag
+        # u = unused
+        style = getBits(res, 23, 1)
+        # print("Style ..........: {} (0: old, 1: new)".format(style))
+        if style == self.STYLE_OLD:
+            memory = self.OLD_STYLE.get(res)[2]
+            manufacturer = self.OLD_STYLE.get(res)[3]
+            soc = self.OLD_STYLE.get(res)[4]
+            type = self.OLD_STYLE.get(res)[0]
+            revision = self.OLD_STYLE.get(res)[1]
+        else:  # style == STYLE_NEW:
+            memory = self.MEMORY_SIZE.get(getBits(res, 20, 3))
+            manufacturer = self.MANUFACTURER.get(getBits(res, 16, 4))
+            soc = self.PROCESSOR.get(getBits(res, 12, 4))
+            type = self.TYPE.get(getBits(res, 4, 8))
+            revision = "{:.1f}".format(getBits(res, 0, 4))
+        Domoticz.Debug("Raspberry ....{}: {} - {} ({}: {})".format(type,
+                                                                   soc,
+                                                                   memory,
+                                                                   manufacturer,
+                                                                   revision)
+                       )
+        info = "{}: {} - {} ({}: {})".format(type, soc,
+                                             memory, manufacturer, revision)
+        UpdateDevice(self.__UNIT_INFO, 0, info, AlwaysUpdate=True)
 
     def onStop(self):
         Domoticz.Debug("onStop called")
@@ -540,3 +644,18 @@ def getVoltage(p):
     else:
         res = "0"
     return float(res)
+
+
+def getPiRevision():
+    try:
+        res = os.popen(
+            "cat /proc/cpuinfo | grep Revision\t").readline().replace("\n", "").split(":")[1].strip()
+        # Convert hex to int
+        res = int(res, 16)
+    except:
+        res = None
+    return res
+
+
+def getBits(value, start, length):
+    return ((value >> start) & 2**length - 1)

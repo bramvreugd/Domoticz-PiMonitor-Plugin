@@ -30,3 +30,4 @@ The following parameters are displayed:
 | SDRAM P voltage | SDRAM P voltage
 | Domoticz memory | Amount of memory used by Domoticz
 | Throttled       | Throttled
+| Info            | Display RPi info in the format: `Type: Processor - Memory (Manufacturer: Version)`
