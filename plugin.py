@@ -242,12 +242,12 @@ class BasePlugin:
             UpdateDevice(self.__UNIT_GPUTEMP, int(fnumber),
                          str(fnumber), AlwaysUpdate=True)
             #
-            fnumber = getGPUmemory()
+            fnumber = getMemory("gpu")
             Domoticz.Debug("GPU memory ........: {} Mb".format(fnumber))
             UpdateDevice(self.__UNIT_GPUMEMORY, int(fnumber),
                          str(fnumber), AlwaysUpdate=True)
             #
-            fnumber = getCPUmemory()
+            fnumber = getMemory("arm")
             Domoticz.Debug("CPU memory ........: {} Mb".format(fnumber))
             UpdateDevice(self.__UNIT_CPUMEMORY, int(fnumber),
                          str(fnumber), AlwaysUpdate=True)
@@ -485,6 +485,10 @@ options = {
 
 
 def vcgencmd(option):
+    """
+        https://elinux.org/RPI_vcgencmd_usage
+        https://github.com/nezticle/RaspberryPi-BuildRoot/wiki/VideoCore-Tools
+    """
     if option in options:
         cmd = "/opt/vc/bin/vcgencmd {}".format(option)
         Domoticz.Debug("cmd: {}".format(cmd))
@@ -506,11 +510,49 @@ def vcgencmd(option):
 global _last_idle, _last_total
 _last_idle = _last_total = 0
 
-# Return % of CPU used by user
-# Based on: https://rosettacode.org/wiki/Linux_CPU_utilization#Python
+
+def getBits(value, start, length):
+    return ((value >> start) & 2**length - 1)
+
+
+def getCPUcount():
+    return os.cpu_count()
+
+
+def getCPUcurrentSpeed():
+    # Return CPU speed in Mhz
+    try:
+        res = os.popen(
+            "cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq").readline()
+    except:
+        res = "0"
+    return round(int(res)/1000)
+
+
+def getCPUtemperature():
+    # Return CPU temperature
+    try:
+        res = os.popen("cat /sys/class/thermal/thermal_zone0/temp").readline()
+    except:
+        res = "0"
+    return round(float(res)/1000, 1)
+
+
+def getCPUuptime():
+    try:
+        with open('/proc/uptime') as f:
+            fields = [float(column) for column in f.readline().strip().split()]
+        res = round(fields[0])
+    except:
+        res = 0.0
+    return res
 
 
 def getCPUuse():
+    """
+        Return % of CPU used by user
+        Based on: https://rosettacode.org/wiki/Linux_CPU_utilization#Python
+    """
     global _last_idle, _last_total
     try:
         with open('/proc/stat') as f:
@@ -525,18 +567,27 @@ def getCPUuse():
     return res
 
 
-def getCPUcount():
-    return os.cpu_count()
-
-
-def getCPUuptime():
+def getDomoticzMemory():
+    # ps aux | grep domoticz | awk '{sum=sum+$6}; END {print sum}'
     try:
-        with open('/proc/uptime') as f:
-            fields = [float(column) for column in f.readline().strip().split()]
-        res = round(fields[0])
+        res = os.popen(
+            "ps aux | grep domoticz | awk '{sum=sum+$6}; END {print sum}'").readline().replace("\n", "")
     except:
-        res = 0.0
-    return res
+        res = "0"
+    return float(res)
+
+
+def getGPUtemperature():
+    # Return GPU temperature
+    return float(vcgencmd("measure_temp"))
+
+
+def getMemory(p):
+    if p in ["arm", "gpu"]:
+        res = vcgencmd("get_mem {}".format(p))
+    else:
+        res = "0"
+    return float(res)
 
 
 def getNetworkConnections(state):
@@ -551,48 +602,15 @@ def getNetworkConnections(state):
     return res
 
 
-def getGPUtemperature():
-    # Return GPU temperature
-    return float(vcgencmd("measure_temp"))
-
-
-def getGPUmemory():
-    # Return GPU memory size
-    return float(vcgencmd("get_mem gpu"))
-
-
-def getCPUtemperature():
-    # Return CPU temperature
-    try:
-        res = os.popen("cat /sys/class/thermal/thermal_zone0/temp").readline()
-    except:
-        res = "0"
-    return round(float(res)/1000, 1)
-
-
-def getCPUmemory():
-    # Return CPU memory size
-    return float(vcgencmd("get_mem arm"))
-
-
-def getCPUcurrentSpeed():
-    # Return CPU speed in Mhz
+def getPiRevision():
     try:
         res = os.popen(
-            "cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq").readline()
+            "cat /proc/cpuinfo | grep Revision\t").readline().replace("\n", "").split(":")[1].strip()
+        # Convert hex to int
+        res = int(res, 16)
     except:
-        res = "0"
-    return round(int(res)/1000)
-
-
-def getDomoticzMemory():
-    # ps aux | grep domoticz | awk '{sum=sum+$6}; END {print sum}'
-    try:
-        res = os.popen(
-            "ps aux | grep domoticz | awk '{sum=sum+$6}; END {print sum}'").readline().replace("\n", "")
-    except:
-        res = "0"
-    return float(res)
+        res = None
+    return res
 
 
 def getRAMinfo():
@@ -627,7 +645,6 @@ def getUpStats():
     try:
         s = os.popen("uptime").readline()
         load_split = s.split("load average: ")
-        # load_five = float(load_split[1].split(",")[1])
         up = load_split[0]
         up_pos = up.rfind(",", 0, len(up)-4)
         up = up[:up_pos].split("up ")[1]
@@ -644,18 +661,3 @@ def getVoltage(p):
     else:
         res = "0"
     return float(res)
-
-
-def getPiRevision():
-    try:
-        res = os.popen(
-            "cat /proc/cpuinfo | grep Revision\t").readline().replace("\n", "").split(":")[1].strip()
-        # Convert hex to int
-        res = int(res, 16)
-    except:
-        res = None
-    return res
-
-
-def getBits(value, start, length):
-    return ((value >> start) & 2**length - 1)
