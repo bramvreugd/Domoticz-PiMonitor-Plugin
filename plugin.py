@@ -169,15 +169,14 @@ class BasePlugin:
         res = getPiRevision()
         # https://www.raspberrypi.org/documentation/hardware/raspberrypi/revision-codes/README.md
         # uuuuuuuuFMMMCCCCPPPPTTTTTTTTRRRR
-        #         ||  |   |   |          +--- Revision
-        #         ||  |   |   +-------------- Type
-        #         ||  |   +------------------ Processor
-        #         ||  +---------------------- Manufacturer
-        #         |+------------------------- Memory size
-        #         +-------------------------- New flag
-        # u = unused
+        # |       ||  |   |   |       +------ R: Revision
+        # |       ||  |   |   +-------------- T: Type
+        # |       ||  |   +------------------ P: Processor
+        # |       ||  +---------------------- C: Manufacturer
+        # |       |+------------------------- M: Memory size
+        # |       +-------------------------- F: New flag
+        # +---------------------------------- U: Unused
         style = getBits(res, 23, 1)
-        # print("Style ..........: {} (0: old, 1: new)".format(style))
         if style == self.STYLE_OLD:
             memory = self.OLD_STYLE.get(res)[2]
             manufacturer = self.OLD_STYLE.get(res)[3]
@@ -201,13 +200,13 @@ class BasePlugin:
         UpdateDevice(self.__UNIT_INFO, 0, info, TimedOut=0)
 
     def onStop(self):
-        Domoticz.Debug("onStop called")
+        Domoticz.Debug("onStop")
 
     def onConnect(self, Connection, Status, Description):
-        Domoticz.Debug("onConnect called")
+        Domoticz.Debug("onConnect")
 
     def onMessage(self, Connection, Data):
-        Domoticz.Debug("onMessage called")
+        Domoticz.Debug("onMessage")
 
     def onCommand(self, Unit, Command, Level, Hue):
         Domoticz.Debug(
@@ -225,7 +224,6 @@ class BasePlugin:
         self.__runAgain -= 1
         if self.__runAgain <= 0:
             self.__runAgain = self.__HEARTBEATS2MIN * self.__MINUTES
-            # Execute your command
             #
             fnumber = getCPUcount()
             Domoticz.Debug("CPU count .........: {}".format(fnumber))
@@ -249,38 +247,38 @@ class BasePlugin:
             #
             fnumber = getMemory("arm")
             Domoticz.Debug("CPU memory ........: {} Mb".format(fnumber))
-            UpdateDevice(self.__UNIT_CPUMEMORY, int(fnumber),
-                         str(fnumber), TimedOut=0)
+            UpdateDevice(self.__UNIT_CPUMEMORY, int(
+                fnumber), str(fnumber), TimedOut=0)
             #
             fnumber = getCPUuse()
             Domoticz.Debug("CPU use ...........: {} %".format(fnumber))
-            UpdateDevice(self.__UNIT_CPUUSE, int(fnumber),
-                         str(fnumber), TimedOut=0)
+            UpdateDevice(self.__UNIT_CPUUSE, int(
+                fnumber), str(fnumber), TimedOut=0)
             #
             fnumber = getRAMinfo()
             Domoticz.Debug("RAM use ...........: {} %".format(fnumber))
-            UpdateDevice(self.__UNIT_RAMUSE, int(fnumber),
-                         str(fnumber), TimedOut=0)
+            UpdateDevice(self.__UNIT_RAMUSE, int(
+                fnumber), str(fnumber), TimedOut=0)
             #
             fnumber = getCPUcurrentSpeed()
             Domoticz.Debug("CPU speed .........: {} Mhz".format(fnumber))
-            UpdateDevice(self.__UNIT_CPUSPEED, int(fnumber),
-                         str(fnumber), TimedOut=0)
+            UpdateDevice(self.__UNIT_CPUSPEED, int(
+                fnumber), str(fnumber), TimedOut=0)
             #
             fnumber = round(getVoltage("core"), 2)
             Domoticz.Debug("Core voltage ......: {} V".format(fnumber))
-            UpdateDevice(self.__UNIT_COREVOLTAGE, int(fnumber),
-                         str(fnumber), TimedOut=0)
+            UpdateDevice(self.__UNIT_COREVOLTAGE, int(
+                fnumber), str(fnumber), TimedOut=0)
             #
             fnumber = round(getVoltage("sdram_c"), 2)
             Domoticz.Debug("SDRAM C ...........: {} V".format(fnumber))
-            UpdateDevice(self.__UNIT_SDRAMCVOLTAGE, int(fnumber),
-                         str(fnumber), TimedOut=0)
+            UpdateDevice(self.__UNIT_SDRAMCVOLTAGE, int(
+                fnumber), str(fnumber), TimedOut=0)
             #
             fnumber = round(getVoltage("sdram_i"), 2)
             Domoticz.Debug("SDRAM I ...........: {} V".format(fnumber))
-            UpdateDevice(self.__UNIT_SDRAMIVOLTAGE, int(fnumber),
-                         str(fnumber), TimedOut=0)
+            UpdateDevice(self.__UNIT_SDRAMIVOLTAGE, int(
+                fnumber), str(fnumber), TimedOut=0)
             #
             fnumber = round(getVoltage("sdram_p"), 2)
             Domoticz.Debug("SDRAM P ...........: {} V".format(fnumber))
@@ -289,22 +287,17 @@ class BasePlugin:
             #
             res = getCPUuptime()  # in sec
             Domoticz.Debug("Up time ...........: {} sec".format(res))
-            # if res < 60:
             fnumber = round(res, 2)
             options = {"Custom": "0;s"}
-            # UpdateDeviceOptions(self.__UNIT_UPTIME, {"Custom": "0;s"})
             if res >= 60:
                 fnumber = round(res / (60), 2)
                 options = {"Custom": "0;min"}
-                # UpdateDeviceOptions(self.__UNIT_UPTIME, {"Custom": "0;min"})
             if res >= 60 * 60:
                 fnumber = round(res / (60 * 60), 2)
                 options = {"Custom": "0;h"}
-                # UpdateDeviceOptions(self.__UNIT_UPTIME, {"Custom": "0;h"})
             if res >= 60 * 60 * 24:
                 fnumber = round(res / (60 * 60 * 24), 2)
                 options = {"Custom": "0;d"}
-                # UpdateDeviceOptions(self.__UNIT_UPTIME, {"Custom": "0;d"})
             UpdateDeviceOptions(self.__UNIT_UPTIME, options)
             UpdateDevice(self.__UNIT_UPTIME, int(fnumber),
                          str(fnumber), TimedOut=0)
