@@ -198,7 +198,7 @@ class BasePlugin:
                        )
         info = "{}: {} - {} ({}: {})".format(type, soc,
                                              memory, manufacturer, revision)
-        UpdateDevice(self.__UNIT_INFO, 0, info, AlwaysUpdate=True)
+        UpdateDevice(self.__UNIT_INFO, 0, info, TimedOut=0)
 
     def onStop(self):
         Domoticz.Debug("onStop called")
@@ -230,62 +230,62 @@ class BasePlugin:
             fnumber = getCPUcount()
             Domoticz.Debug("CPU count .........: {}".format(fnumber))
             UpdateDevice(self.__UNIT_CPUCOUNT, int(fnumber),
-                         str(fnumber), AlwaysUpdate=True)
+                         str(fnumber), TimedOut=0)
             #
             fnumber = getCPUtemperature()
             Domoticz.Debug("CPU temp ..........: {} °C".format(fnumber))
             UpdateDevice(self.__UNIT_CPUTEMP, int(fnumber),
-                         str(fnumber), AlwaysUpdate=True)
+                         str(fnumber), TimedOut=0)
             #
             fnumber = getGPUtemperature()
             Domoticz.Debug("GPU temp ..........: {} °C".format(fnumber))
             UpdateDevice(self.__UNIT_GPUTEMP, int(fnumber),
-                         str(fnumber), AlwaysUpdate=True)
+                         str(fnumber), TimedOut=0)
             #
             fnumber = getMemory("gpu")
             Domoticz.Debug("GPU memory ........: {} Mb".format(fnumber))
             UpdateDevice(self.__UNIT_GPUMEMORY, int(fnumber),
-                         str(fnumber), AlwaysUpdate=True)
+                         str(fnumber), TimedOut=0)
             #
             fnumber = getMemory("arm")
             Domoticz.Debug("CPU memory ........: {} Mb".format(fnumber))
             UpdateDevice(self.__UNIT_CPUMEMORY, int(fnumber),
-                         str(fnumber), AlwaysUpdate=True)
+                         str(fnumber), TimedOut=0)
             #
             fnumber = getCPUuse()
             Domoticz.Debug("CPU use ...........: {} %".format(fnumber))
             UpdateDevice(self.__UNIT_CPUUSE, int(fnumber),
-                         str(fnumber), AlwaysUpdate=True)
+                         str(fnumber), TimedOut=0)
             #
             fnumber = getRAMinfo()
             Domoticz.Debug("RAM use ...........: {} %".format(fnumber))
             UpdateDevice(self.__UNIT_RAMUSE, int(fnumber),
-                         str(fnumber), AlwaysUpdate=True)
+                         str(fnumber), TimedOut=0)
             #
             fnumber = getCPUcurrentSpeed()
             Domoticz.Debug("CPU speed .........: {} Mhz".format(fnumber))
             UpdateDevice(self.__UNIT_CPUSPEED, int(fnumber),
-                         str(fnumber), AlwaysUpdate=True)
+                         str(fnumber), TimedOut=0)
             #
             fnumber = round(getVoltage("core"), 2)
             Domoticz.Debug("Core voltage ......: {} V".format(fnumber))
             UpdateDevice(self.__UNIT_COREVOLTAGE, int(fnumber),
-                         str(fnumber), AlwaysUpdate=True)
+                         str(fnumber), TimedOut=0)
             #
             fnumber = round(getVoltage("sdram_c"), 2)
             Domoticz.Debug("SDRAM C ...........: {} V".format(fnumber))
             UpdateDevice(self.__UNIT_SDRAMCVOLTAGE, int(fnumber),
-                         str(fnumber), AlwaysUpdate=True)
+                         str(fnumber), TimedOut=0)
             #
             fnumber = round(getVoltage("sdram_i"), 2)
             Domoticz.Debug("SDRAM I ...........: {} V".format(fnumber))
             UpdateDevice(self.__UNIT_SDRAMIVOLTAGE, int(fnumber),
-                         str(fnumber), AlwaysUpdate=True)
+                         str(fnumber), TimedOut=0)
             #
             fnumber = round(getVoltage("sdram_p"), 2)
             Domoticz.Debug("SDRAM P ...........: {} V".format(fnumber))
             UpdateDevice(self.__UNIT_SDRAMPVOLTAGE, int(fnumber),
-                         str(fnumber), AlwaysUpdate=True)
+                         str(fnumber), TimedOut=0)
             #
             res = getCPUuptime()  # in sec
             Domoticz.Debug("Up time ...........: {} sec".format(res))
@@ -307,23 +307,23 @@ class BasePlugin:
                 # UpdateDeviceOptions(self.__UNIT_UPTIME, {"Custom": "0;d"})
             UpdateDeviceOptions(self.__UNIT_UPTIME, options)
             UpdateDevice(self.__UNIT_UPTIME, int(fnumber),
-                         str(fnumber), AlwaysUpdate=True)
+                         str(fnumber), TimedOut=0)
             #
             inumber = getNetworkConnections("ESTABLISHED")
             #inumber = getNetworkConnections("CLOSE_WAIT")
             Domoticz.Debug("Connections .......: {}".format(inumber))
             UpdateDevice(self.__UNIT_CONNECTIONS, inumber,
-                         str(inumber), AlwaysUpdate=True)
+                         str(inumber), TimedOut=0)
             #
             fnumber = getDomoticzMemory()
             Domoticz.Debug("Domoticz memory ...: {} KB".format(fnumber))
             UpdateDevice(self.__UNIT_DOMOTICZMEMORY, int(fnumber),
-                         str(fnumber), AlwaysUpdate=True)
+                         str(fnumber), TimedOut=0)
             #
             inumber = getThrottled()
             Domoticz.Debug("Throttled .........: {}".format(inumber))
             UpdateDevice(self.__UNIT_THROTTLED, inumber,
-                         str(inumber), AlwaysUpdate=True)
+                         str(inumber), TimedOut=0)
             #
         else:
             Domoticz.Debug(
