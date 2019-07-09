@@ -138,7 +138,6 @@ class BasePlugin:
     }
 
     def __init__(self):
-        Domoticz.Status("PiMonitor 3.0")
         self.__runAgain = 0
 
     def onStart(self):
@@ -166,38 +165,6 @@ class BasePlugin:
                                 Image=image).Create()
         # Log config
         DumpAllToLog()
-        res = getPiRevision()
-        # https://www.raspberrypi.org/documentation/hardware/raspberrypi/revision-codes/README.md
-        # uuuuuuuuFMMMCCCCPPPPTTTTTTTTRRRR
-        # |       ||  |   |   |       +------ R: Revision
-        # |       ||  |   |   +-------------- T: Type
-        # |       ||  |   +------------------ P: Processor
-        # |       ||  +---------------------- C: Manufacturer
-        # |       |+------------------------- M: Memory size
-        # |       +-------------------------- F: New flag
-        # +---------------------------------- U: Unused
-        style = getBits(res, 23, 1)
-        if style == self.STYLE_OLD:
-            memory = self.OLD_STYLE.get(res)[2]
-            manufacturer = self.OLD_STYLE.get(res)[3]
-            soc = self.OLD_STYLE.get(res)[4]
-            type = self.OLD_STYLE.get(res)[0]
-            revision = self.OLD_STYLE.get(res)[1]
-        else:  # style == STYLE_NEW:
-            memory = self.MEMORY_SIZE.get(getBits(res, 20, 3))
-            manufacturer = self.MANUFACTURER.get(getBits(res, 16, 4))
-            soc = self.PROCESSOR.get(getBits(res, 12, 4))
-            type = self.TYPE.get(getBits(res, 4, 8))
-            revision = "{:.1f}".format(getBits(res, 0, 4))
-        Domoticz.Debug("Raspberry ....{}: {} - {} ({}: {})".format(type,
-                                                                   soc,
-                                                                   memory,
-                                                                   manufacturer,
-                                                                   revision)
-                       )
-        info = "{}: {} - {} ({}: {})".format(type, soc,
-                                             memory, manufacturer, revision)
-        UpdateDevice(self.__UNIT_INFO, 0, info, TimedOut=0)
 
     def onStop(self):
         Domoticz.Debug("onStop")
@@ -317,6 +284,39 @@ class BasePlugin:
             Domoticz.Debug("Throttled .........: {}".format(inumber))
             UpdateDevice(self.__UNIT_THROTTLED, inumber,
                          str(inumber), TimedOut=0)
+            #
+            res = getPiRevision()
+            # https://www.raspberrypi.org/documentation/hardware/raspberrypi/revision-codes/README.md
+            # uuuuuuuuFMMMCCCCPPPPTTTTTTTTRRRR
+            # |       ||  |   |   |       +------ R: Revision
+            # |       ||  |   |   +-------------- T: Type
+            # |       ||  |   +------------------ P: Processor
+            # |       ||  +---------------------- C: Manufacturer
+            # |       |+------------------------- M: Memory size
+            # |       +-------------------------- F: New flag
+            # +---------------------------------- U: Unused
+            style = getBits(res, 23, 1)
+            if style == self.STYLE_OLD:
+                memory = self.OLD_STYLE.get(res)[2]
+                manufacturer = self.OLD_STYLE.get(res)[3]
+                soc = self.OLD_STYLE.get(res)[4]
+                type = self.OLD_STYLE.get(res)[0]
+                revision = self.OLD_STYLE.get(res)[1]
+            else:  # style == STYLE_NEW:
+                memory = self.MEMORY_SIZE.get(getBits(res, 20, 3))
+                manufacturer = self.MANUFACTURER.get(getBits(res, 16, 4))
+                soc = self.PROCESSOR.get(getBits(res, 12, 4))
+                type = self.TYPE.get(getBits(res, 4, 8))
+                revision = "{:.1f}".format(getBits(res, 0, 4))
+            Domoticz.Debug("Raspberry ....{}: {} - {} ({}: {})".format(type,
+                                                                    soc,
+                                                                    memory,
+                                                                    manufacturer,
+                                                                    revision)
+                        )
+            info = "{}: {} - {} ({}: {})".format(type, soc,
+                                                memory, manufacturer, revision)
+            UpdateDevice(self.__UNIT_INFO, 0, info, TimedOut=0)
             #
         else:
             Domoticz.Debug(
