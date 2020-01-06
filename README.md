@@ -17,9 +17,10 @@ Only works on Raspberry Pi
     sudo service domoticz.sh restart
     ```
 1. Make sure that "Accept new Hardware Devices" is enabled in Domoticz settings
-1. Go to "Hardware" page and add new hardware with Type "PiMonitor"
-1. Enter the name
-1. Press Add
+1. Go to "Hardware" page
+1. Enter the Name
+1. Select Type: `PiMonitor`
+1. Click `Add`
 
 ## Update
 1. Go to plugin folder and pull new version
@@ -36,7 +37,7 @@ Only works on Raspberry Pi
 None
 
 ## Devices
-The following parameters are displayed:
+The following devices are created:
 
 | Name                | Description
 | :---                | :---
