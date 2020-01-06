@@ -17,6 +17,37 @@
 """
 import Domoticz
 import os
+import socket
+from enum import IntEnum, unique  # , auto
+
+
+@unique
+class unit(IntEnum):
+    """
+        Device Unit numbers
+
+        Define here your units numbers. These can be used to update your devices.
+        Be sure the these have a unique number!
+    """
+
+    CPUTEMP = 1
+    GPUTEMP = 2
+    RAMUSE = 3
+    CPUUSE = 4
+    CPUSPEED = 5
+    UPTIME = 6
+    CPUMEMORY = 7
+    GPUMEMORY = 8
+    CPUCOUNT = 9
+    CONNECTIONS = 10
+    COREVOLTAGE = 11
+    SDRAMCVOLTAGE = 12
+    SDRAMIVOLTAGE = 13
+    SDRAMPVOLTAGE = 14
+    DOMOTICZMEMORY = 15
+    THROTTLED = 16
+    INFO = 17
+    HOST = 18
 
 
 class BasePlugin:
@@ -24,48 +55,26 @@ class BasePlugin:
     __HEARTBEATS2MIN = 6
     __MINUTES = 1
 
-    # Device units
-    __UNIT_CPUTEMP = 1
-    __UNIT_GPUTEMP = 2
-    __UNIT_RAMUSE = 3
-    __UNIT_CPUUSE = 4
-    __UNIT_CPUSPEED = 5
-    __UNIT_UPTIME = 6
-    __UNIT_CPUMEMORY = 7
-    __UNIT_GPUMEMORY = 8
-    __UNIT_CPUCOUNT = 9
-    __UNIT_CONNECTIONS = 10
-    __UNIT_COREVOLTAGE = 11
-    __UNIT_SDRAMCVOLTAGE = 12
-    __UNIT_SDRAMIVOLTAGE = 13
-    __UNIT_SDRAMPVOLTAGE = 14
-    __UNIT_DOMOTICZMEMORY = 15
-    __UNIT_THROTTLED = 16
-    __UNIT_INFO = 17
-
     __UNITS = [
         # Unit, Name, Type, Subtype, Options, Used
-        [__UNIT_CPUTEMP, "CPU temperature", 243, 31, {"Custom": "0;°C"}, 1],
-        [__UNIT_GPUTEMP, "GPU temperature", 243, 31, {"Custom": "0;°C"}, 1],
-        [__UNIT_RAMUSE, "Memory usage", 243, 31, {"Custom": "0;%"}, 1],
-        [__UNIT_CPUUSE, "CPU usage", 243, 31, {"Custom": "0;%"}, 1],
-        [__UNIT_CPUSPEED, "CPU speed", 243, 31, {"Custom": "0;Mhz"}, 1],
-        [__UNIT_UPTIME, "Up time", 243, 31, {"Custom": "0;sec"}, 1],
-        [__UNIT_CPUMEMORY, "CPU memory", 243, 31, {"Custom": "0;MB"}, 1],
-        [__UNIT_GPUMEMORY, "GPU memory", 243, 31, {"Custom": "0;MB"}, 1],
-        [__UNIT_CPUCOUNT, "CPU count", 243, 31, {}, 1],
-        [__UNIT_CONNECTIONS, "Connections", 243, 31, {}, 1],
-        [__UNIT_COREVOLTAGE, "Core voltage", 243, 31, {"Custom": "0;V"}, 1],
-        [__UNIT_SDRAMCVOLTAGE, "SDRAM C voltage",
-            243, 31, {"Custom": "0;V"}, 1],
-        [__UNIT_SDRAMIVOLTAGE, "SDRAM I voltage",
-            243, 31, {"Custom": "0;V"}, 1],
-        [__UNIT_SDRAMPVOLTAGE, "SDRAM P voltage",
-            243, 31, {"Custom": "0;V"}, 1],
-        [__UNIT_DOMOTICZMEMORY, "Domoticz memory",
-            243, 31, {"Custom": "0;KB"}, 1],
-        [__UNIT_THROTTLED, "Throttled", 243, 31, {}, 1],
-        [__UNIT_INFO, "Info", 243, 19, {}, 1],
+        [unit.CPUTEMP, "CPU temperature", 243, 31, {"Custom": "0;°C"}, 1],
+        [unit.GPUTEMP, "GPU temperature", 243, 31, {"Custom": "0;°C"}, 1],
+        [unit.RAMUSE, "Memory usage", 243, 31, {"Custom": "0;%"}, 1],
+        [unit.CPUUSE, "CPU usage", 243, 31, {"Custom": "0;%"}, 1],
+        [unit.CPUSPEED, "CPU speed", 243, 31, {"Custom": "0;Mhz"}, 1],
+        [unit.UPTIME, "Up time", 243, 31, {"Custom": "0;sec"}, 1],
+        [unit.CPUMEMORY, "CPU memory", 243, 31, {"Custom": "0;MB"}, 1],
+        [unit.GPUMEMORY, "GPU memory", 243, 31, {"Custom": "0;MB"}, 1],
+        [unit.CPUCOUNT, "CPU count", 243, 31, {}, 1],
+        [unit.CONNECTIONS, "Connections", 243, 31, {}, 1],
+        [unit.COREVOLTAGE, "Core voltage", 243, 31, {"Custom": "0;V"}, 1],
+        [unit.SDRAMCVOLTAGE, "SDRAM C voltage", 243, 31, {"Custom": "0;V"}, 1],
+        [unit.SDRAMIVOLTAGE, "SDRAM I voltage", 243, 31, {"Custom": "0;V"}, 1],
+        [unit.SDRAMPVOLTAGE, "SDRAM P voltage", 243, 31, {"Custom": "0;V"}, 1],
+        [unit.DOMOTICZMEMORY, "Domoticz memory", 243, 31, {"Custom": "0;KB"}, 1],
+        [unit.THROTTLED, "Throttled", 243, 31, {}, 1],
+        [unit.INFO, "Info", 243, 19, {}, 1],
+        [unit.HOST, "Host", 243, 19, {}, 1],
     ]
 
     STYLE_OLD = 0
@@ -74,33 +83,27 @@ class BasePlugin:
     # Old
     OLD_STYLE = {
         # Code	Type	Revision	RAM	                Manufacturer    Processor
-        0x0002:	["B",	"1.0",	    "256 MB",	        "Egoman",       "BCM2835"],
-        0x0003:	["B",	"1.0",	    "256 MB",    	    "Egoman",       "BCM2835"],
-        0x0004:	["B",	"2.0",	    "256 MB",    	    "Sony UK",      "BCM2835"],
-        0x0005:	["B",	"2.0",	    "256 MB",    	    "Qisda",        "BCM2835"],
-        0x0006:	["B",	"2.0",	    "256 MB",    	    "Egoman",       "BCM2835"],
-        0x0007:	["A",	"2.0",  	"256 MB",    	    "Egoman",       "BCM2835"],
-        0x0008:	["A",	"2.0",  	"256 MB",    	    "Sony UK",      "BCM2835"],
-        0x0009:	["A",	"2.0",     	"256 MB",    	    "Qisda",        "BCM2835"],
-        0x000d:	["B",	"2.0",     	"512 MB",    	    "Egoman",       "BCM2835"],
-        0x000e:	["B",	"2.0",  	"512 MB",    	    "Sony UK",      "BCM2835"],
-        0x000f:	["B",	"2.0",  	"512 MB",    	    "Egoman",       "BCM2835"],
-        0x0010:	["B+",  "1.2",  	"512 MB",	        "Sony UK",      "BCM2835"],
-        0x0011:	["CM1",	"1.0",  	"512 MB",    	    "Sony UK",      "BCM2835"],
-        0x0012:	["A+",  "1.1",  	"256 MB",    	    "Sony UK",      "BCM2835"],
-        0x0013:	["B+",  "1.2",  	"512 MB",    	    "Embest",       "BCM2835"],
-        0x0014:	["CM1",	"1.0",    	"512 MB",       	"Embest",       "BCM2835"],
-        0x0015:	["A+",  "1.1",      "256 MB/512 MB",    "Embest",       "BCM2835"],
+        0x0002: ["B", "1.0", "256 MB", "Egoman", "BCM2835"],
+        0x0003: ["B", "1.0", "256 MB", "Egoman", "BCM2835"],
+        0x0004: ["B", "2.0", "256 MB", "Sony UK", "BCM2835"],
+        0x0005: ["B", "2.0", "256 MB", "Qisda", "BCM2835"],
+        0x0006: ["B", "2.0", "256 MB", "Egoman", "BCM2835"],
+        0x0007: ["A", "2.0", "256 MB", "Egoman", "BCM2835"],
+        0x0008: ["A", "2.0", "256 MB", "Sony UK", "BCM2835"],
+        0x0009: ["A", "2.0", "256 MB", "Qisda", "BCM2835"],
+        0x000D: ["B", "2.0", "512 MB", "Egoman", "BCM2835"],
+        0x000E: ["B", "2.0", "512 MB", "Sony UK", "BCM2835"],
+        0x000F: ["B", "2.0", "512 MB", "Egoman", "BCM2835"],
+        0x0010: ["B+", "1.2", "512 MB", "Sony UK", "BCM2835"],
+        0x0011: ["CM1", "1.0", "512 MB", "Sony UK", "BCM2835"],
+        0x0012: ["A+", "1.1", "256 MB", "Sony UK", "BCM2835"],
+        0x0013: ["B+", "1.2", "512 MB", "Embest", "BCM2835"],
+        0x0014: ["CM1", "1.0", "512 MB", "Embest", "BCM2835"],
+        0x0015: ["A+", "1.1", "256 MB/512 MB", "Embest", "BCM2835"],
     }
 
     # New
-    MEMORY_SIZE = {
-        0: "256 MB",
-        1: "512 MB",
-        2: "1 GB",
-        3: "2 GB",
-        4: "4 GB",
-    }
+    MEMORY_SIZE = {0: "256 MB", 1: "512 MB", 2: "1 GB", 3: "2 GB", 4: "4 GB"}
 
     MANUFACTURER = {
         0: "Sony UK",
@@ -111,12 +114,7 @@ class BasePlugin:
         5: "Stadium",
     }
 
-    PROCESSOR = {
-        0: "BCM2835",
-        1: "BCM2836",
-        2: "BCM2837",
-        3: "BCM2711",
-    }
+    PROCESSOR = {0: "BCM2835", 1: "BCM2836", 2: "BCM2837", 3: "BCM2711"}
 
     TYPE = {
         0x00000000: "A",
@@ -128,11 +126,11 @@ class BasePlugin:
         0x00000006: "CM1",
         0x00000008: "3B",
         0x00000009: "Zero",
-        0x0000000a: "CM3",
-        0x0000000c: "Zero W",
-        0x0000000d: "3B",
-        0x0000000e: "3A+",
-        0x0000000f: "Internal use only",
+        0x0000000A: "CM3",
+        0x0000000C: "Zero W",
+        0x0000000D: "3B",
+        0x0000000E: "3A+",
+        0x0000000F: "Internal use only",
         0x00000010: "CM3+",
         0x00000011: "4B",
     }
@@ -141,28 +139,30 @@ class BasePlugin:
         self.__runAgain = 0
 
     def onStart(self):
-        Domoticz.Debug("onStart called")
         if Parameters["Mode6"] == "Debug":
             Domoticz.Debugging(1)
         else:
             Domoticz.Debugging(0)
+        Domoticz.Debug("onStart called")
         # Validate parameters
         # Images
         # Check if images are in database
-        if "xfrpimonitor" not in Images:
-            Domoticz.Image("xfrpimonitor.zip").Create()
-        image = Images["xfrpimonitor"].ID
-        Domoticz.Debug("Image created. ID: "+str(image))
+        # if "xfrpimonitor" not in Images:
+        #     Domoticz.Image("xfrpimonitor.zip").Create()
+        # image = Images["xfrpimonitor"].ID
+        # Domoticz.Debug("Image created. ID: {}".format(image))
         # Create devices
-        if len(Devices) == 0:
-            for unit in self.__UNITS:
-                Domoticz.Device(Unit=unit[0],
-                                Name=unit[1],
-                                Type=unit[2],
-                                Subtype=unit[3],
-                                Options=unit[4],
-                                Used=unit[5],
-                                Image=image).Create()
+        for unit in self.__UNITS:
+            if unit[0] not in Devices:
+                Domoticz.Device(
+                    Unit=unit[0],
+                    Name=unit[1],
+                    Type=unit[2],
+                    Subtype=unit[3],
+                    Options=unit[4],
+                    Used=unit[5],
+                    # Image=image,
+                ).Create()
         # Log config
         DumpAllToLog()
 
@@ -170,87 +170,93 @@ class BasePlugin:
         Domoticz.Debug("onStop")
 
     def onConnect(self, Connection, Status, Description):
-        Domoticz.Debug("onConnect")
+        Domoticz.Debug(
+            "onConnect {}={}:{} {}-{}".format(
+                Connection.Name,
+                Connection.Address,
+                Connection.Port,
+                Status,
+                Description,
+            )
+        )
 
     def onMessage(self, Connection, Data):
-        Domoticz.Debug("onMessage")
+        Domoticz.Debug(
+            "onMessage {}={}:{}".format(
+                Connection.Name, Connection.Address, Connection.Port
+            )
+        )
 
     def onCommand(self, Unit, Command, Level, Hue):
-        Domoticz.Debug(
-            "onCommand called for Unit " + str(Unit) + ": Parameter '" + str(Command) + "', Level: " + str(Level))
+        Domoticz.Debug("on_command: {}, {}, {}, {}".format(unit, command, level, hue))
 
     def onNotification(self, Name, Subject, Text, Status, Priority, Sound, ImageFile):
-        Domoticz.Debug("Notification: " + Name + "," + Subject + "," + Text + "," + Status + "," + str(
-            Priority) + "," + Sound + "," + ImageFile)
+        Domoticz.Debug(
+            "on_notification: {}, {}, {}, {}, {}, {}, {}".format(
+                name, subject, text, status, priority, sound, imagefile
+            )
+        )
 
     def onDisconnect(self, Connection):
-        Domoticz.Debug("onDisconnect called")
+        Domoticz.Debug(
+            "onDisconnect {}={}:{}".format(
+                Connection.Name, Connection.Address, Connection.Port
+            )
+        )
 
     def onHeartbeat(self):
-        Domoticz.Debug("onHeartbeat called")
+        Domoticz.Debug("onHeartbeat")
         self.__runAgain -= 1
         if self.__runAgain <= 0:
             self.__runAgain = self.__HEARTBEATS2MIN * self.__MINUTES
             #
             fnumber = getCPUcount()
             Domoticz.Debug("CPU count .........: {}".format(fnumber))
-            UpdateDevice(self.__UNIT_CPUCOUNT, int(fnumber),
-                         str(fnumber), TimedOut=0)
+            UpdateDevice(unit.CPUCOUNT, int(fnumber), str(fnumber), TimedOut=0)
             #
             fnumber = getCPUtemperature()
             Domoticz.Debug("CPU temp ..........: {} °C".format(fnumber))
-            UpdateDevice(self.__UNIT_CPUTEMP, int(fnumber),
-                         str(fnumber), TimedOut=0)
+            UpdateDevice(unit.CPUTEMP, int(fnumber), str(fnumber), TimedOut=0)
             #
             fnumber = getGPUtemperature()
             Domoticz.Debug("GPU temp ..........: {} °C".format(fnumber))
-            UpdateDevice(self.__UNIT_GPUTEMP, int(fnumber),
-                         str(fnumber), TimedOut=0)
+            UpdateDevice(unit.GPUTEMP, int(fnumber), str(fnumber), TimedOut=0)
             #
             fnumber = getMemory("gpu")
             Domoticz.Debug("GPU memory ........: {} Mb".format(fnumber))
-            UpdateDevice(self.__UNIT_GPUMEMORY, int(fnumber),
-                         str(fnumber), TimedOut=0)
+            UpdateDevice(unit.GPUMEMORY, int(fnumber), str(fnumber), TimedOut=0)
             #
             fnumber = getMemory("arm")
             Domoticz.Debug("CPU memory ........: {} Mb".format(fnumber))
-            UpdateDevice(self.__UNIT_CPUMEMORY, int(
-                fnumber), str(fnumber), TimedOut=0)
+            UpdateDevice(unit.CPUMEMORY, int(fnumber), str(fnumber), TimedOut=0)
             #
             fnumber = getCPUuse()
             Domoticz.Debug("CPU use ...........: {} %".format(fnumber))
-            UpdateDevice(self.__UNIT_CPUUSE, int(
-                fnumber), str(fnumber), TimedOut=0)
+            UpdateDevice(unit.CPUUSE, int(fnumber), str(fnumber), TimedOut=0)
             #
             fnumber = getRAMinfo()
             Domoticz.Debug("RAM use ...........: {} %".format(fnumber))
-            UpdateDevice(self.__UNIT_RAMUSE, int(
-                fnumber), str(fnumber), TimedOut=0)
+            UpdateDevice(unit.RAMUSE, int(fnumber), str(fnumber), TimedOut=0)
             #
             fnumber = getCPUcurrentSpeed()
             Domoticz.Debug("CPU speed .........: {} Mhz".format(fnumber))
-            UpdateDevice(self.__UNIT_CPUSPEED, int(
-                fnumber), str(fnumber), TimedOut=0)
+            UpdateDevice(unit.CPUSPEED, int(fnumber), str(fnumber), TimedOut=0)
             #
             fnumber = round(getVoltage("core"), 2)
             Domoticz.Debug("Core voltage ......: {} V".format(fnumber))
-            UpdateDevice(self.__UNIT_COREVOLTAGE, int(
-                fnumber), str(fnumber), TimedOut=0)
+            UpdateDevice(unit.COREVOLTAGE, int(fnumber), str(fnumber), TimedOut=0)
             #
             fnumber = round(getVoltage("sdram_c"), 2)
             Domoticz.Debug("SDRAM C ...........: {} V".format(fnumber))
-            UpdateDevice(self.__UNIT_SDRAMCVOLTAGE, int(
-                fnumber), str(fnumber), TimedOut=0)
+            UpdateDevice(unit.SDRAMCVOLTAGE, int(fnumber), str(fnumber), TimedOut=0)
             #
             fnumber = round(getVoltage("sdram_i"), 2)
             Domoticz.Debug("SDRAM I ...........: {} V".format(fnumber))
-            UpdateDevice(self.__UNIT_SDRAMIVOLTAGE, int(
-                fnumber), str(fnumber), TimedOut=0)
+            UpdateDevice(unit.SDRAMIVOLTAGE, int(fnumber), str(fnumber), TimedOut=0)
             #
             fnumber = round(getVoltage("sdram_p"), 2)
             Domoticz.Debug("SDRAM P ...........: {} V".format(fnumber))
-            UpdateDevice(self.__UNIT_SDRAMPVOLTAGE, int(fnumber),
-                         str(fnumber), TimedOut=0)
+            UpdateDevice(unit.SDRAMPVOLTAGE, int(fnumber), str(fnumber), TimedOut=0)
             #
             res = getCPUuptime()  # in sec
             Domoticz.Debug("Up time ...........: {} sec".format(res))
@@ -265,25 +271,21 @@ class BasePlugin:
             if res >= 60 * 60 * 24:
                 fnumber = round(res / (60 * 60 * 24), 2)
                 options = {"Custom": "0;d"}
-            UpdateDeviceOptions(self.__UNIT_UPTIME, options)
-            UpdateDevice(self.__UNIT_UPTIME, int(fnumber),
-                         str(fnumber), TimedOut=0)
+            UpdateDeviceOptions(unit.UPTIME, options)
+            UpdateDevice(unit.UPTIME, int(fnumber), str(fnumber), TimedOut=0)
             #
             inumber = getNetworkConnections("ESTABLISHED")
-            #inumber = getNetworkConnections("CLOSE_WAIT")
+            # inumber = getNetworkConnections("CLOSE_WAIT")
             Domoticz.Debug("Connections .......: {}".format(inumber))
-            UpdateDevice(self.__UNIT_CONNECTIONS, inumber,
-                         str(inumber), TimedOut=0)
+            UpdateDevice(unit.CONNECTIONS, inumber, str(inumber), TimedOut=0)
             #
             fnumber = getDomoticzMemory()
             Domoticz.Debug("Domoticz memory ...: {} KB".format(fnumber))
-            UpdateDevice(self.__UNIT_DOMOTICZMEMORY, int(fnumber),
-                         str(fnumber), TimedOut=0)
+            UpdateDevice(unit.DOMOTICZMEMORY, int(fnumber), str(fnumber), TimedOut=0)
             #
             inumber = getThrottled()
             Domoticz.Debug("Throttled .........: {}".format(inumber))
-            UpdateDevice(self.__UNIT_THROTTLED, inumber,
-                         str(inumber), TimedOut=0)
+            UpdateDevice(unit.THROTTLED, inumber, str(inumber), TimedOut=0)
             #
             res = getPiRevision()
             # https://www.raspberrypi.org/documentation/hardware/raspberrypi/revision-codes/README.md
@@ -308,19 +310,26 @@ class BasePlugin:
                 soc = self.PROCESSOR.get(getBits(res, 12, 4))
                 type = self.TYPE.get(getBits(res, 4, 8))
                 revision = "{:.1f}".format(getBits(res, 0, 4))
-            Domoticz.Debug("Raspberry ....{}: {} - {} ({}: {})".format(type,
-                                                                    soc,
-                                                                    memory,
-                                                                    manufacturer,
-                                                                    revision)
-                        )
-            info = "{}: {} - {} ({}: {})".format(type, soc,
-                                                memory, manufacturer, revision)
-            UpdateDevice(self.__UNIT_INFO, 0, info, TimedOut=0)
+            Domoticz.Debug(
+                "Raspberry ....{}: {} - {} ({}: {})".format(
+                    type, soc, memory, manufacturer, revision
+                )
+            )
+            #
+            info = "{}: {} - {} ({}: {})".format(
+                type, soc, memory, manufacturer, revision
+            )
+            UpdateDevice(unit.INFO, 0, info, TimedOut=0)
+            #
+            info = "{}: {}".format(getHostname(), getIP())
+            UpdateDevice(unit.HOST, 0, info, TimedOut=0)
             #
         else:
             Domoticz.Debug(
-                "onHeartbeat called, run again in {} heartbeats.".format(self.__runAgain))
+                "onHeartbeat called, run again in {} heartbeats.".format(
+                    self.__runAgain
+                )
+            )
 
 
 global _plugin
@@ -354,8 +363,7 @@ def onCommand(Unit, Command, Level, Hue):
 
 def onNotification(Name, Subject, Text, Status, Priority, Sound, ImageFile):
     global _plugin
-    _plugin.onNotification(Name, Subject, Text, Status,
-                           Priority, Sound, ImageFile)
+    _plugin.onNotification(Name, Subject, Text, Status, Priority, Sound, ImageFile)
 
 
 def onDisconnect(Connection):
@@ -366,6 +374,7 @@ def onDisconnect(Connection):
 def onHeartbeat():
     global _plugin
     _plugin.onHeartbeat()
+
 
 ################################################################################
 # Generic helper functions
@@ -379,17 +388,15 @@ def DumpDevicesToLog():
         Domoticz.Debug("Device...............: {} - {}".format(x, Devices[x]))
         Domoticz.Debug("Device Idx...........: {}".format(Devices[x].ID))
         Domoticz.Debug(
-            "Device Type..........: {} / {}".format(Devices[x].Type, Devices[x].SubType))
+            "Device Type..........: {} / {}".format(Devices[x].Type, Devices[x].SubType)
+        )
         Domoticz.Debug("Device Name..........: '{}'".format(Devices[x].Name))
         Domoticz.Debug("Device nValue........: {}".format(Devices[x].nValue))
         Domoticz.Debug("Device sValue........: '{}'".format(Devices[x].sValue))
-        Domoticz.Debug(
-            "Device Options.......: '{}'".format(Devices[x].Options))
+        Domoticz.Debug("Device Options.......: '{}'".format(Devices[x].Options))
         Domoticz.Debug("Device Used..........: {}".format(Devices[x].Used))
-        Domoticz.Debug(
-            "Device ID............: '{}'".format(Devices[x].DeviceID))
-        Domoticz.Debug("Device LastLevel.....: {}".format(
-            Devices[x].LastLevel))
+        Domoticz.Debug("Device ID............: '{}'".format(Devices[x].DeviceID))
+        Domoticz.Debug("Device LastLevel.....: {}".format(Devices[x].LastLevel))
         Domoticz.Debug("Device Image.........: {}".format(Devices[x].Image))
 
 
@@ -422,45 +429,30 @@ def DumpAllToLog():
     DumpSettingsToLog()
 
 
-def DumpHTTPResponseToLog(httpDict):
-    if isinstance(httpDict, dict):
-        Domoticz.Debug("HTTP Details (" + str(len(httpDict)) + "):")
-        for x in httpDict:
-            if isinstance(httpDict[x], dict):
-                Domoticz.Debug(
-                    "....'" + x + " (" + str(len(httpDict[x])) + "):")
-                for y in httpDict[x]:
-                    Domoticz.Debug("........'" + y + "':'" +
-                                   str(httpDict[x][y]) + "'")
-            else:
-                Domoticz.Debug("....'" + x + "':'" + str(httpDict[x]) + "'")
-
-
 def UpdateDevice(Unit, nValue, sValue, TimedOut=0, AlwaysUpdate=False):
     if Unit in Devices:
-        if Devices[Unit].nValue != nValue or Devices[Unit].sValue != sValue or Devices[
-                Unit].TimedOut != TimedOut or AlwaysUpdate:
-            Devices[Unit].Update(
-                nValue=nValue, sValue=str(sValue), TimedOut=TimedOut)
+        if (
+            Devices[Unit].nValue != nValue
+            or Devices[Unit].sValue != sValue
+            or Devices[Unit].TimedOut != TimedOut
+            or AlwaysUpdate
+        ):
+            Devices[Unit].Update(nValue=nValue, sValue=str(sValue), TimedOut=TimedOut)
             # Domoticz.Debug("Update {}: {} - '{}'".format(Devices[Unit].Name, nValue, sValue))
 
 
 def UpdateDeviceOptions(Unit, Options={}):
     if Unit in Devices:
         if Devices[Unit].Options != Options:
-            Devices[Unit].Update(nValue=Devices[Unit].nValue,
-                                 sValue=Devices[Unit].sValue, Options=Options)
-            Domoticz.Debug("Device Options update: {} = {}".format(
-                Devices[Unit].Name, Options))
+            Devices[Unit].Update(
+                nValue=Devices[Unit].nValue,
+                sValue=Devices[Unit].sValue,
+                Options=Options,
+            )
+            # Domoticz.Debug(
+            #     "Device Options update: {} = {}".format(Devices[Unit].Name, Options)
+            # )
 
-
-def UpdateDeviceImage(Unit, Image):
-    if Unit in Devices and Image in Images:
-        if Devices[Unit].Image != Images[Image].ID:
-            Devices[Unit].Update(nValue=Devices[Unit].nValue,
-                                 sValue=Devices[Unit].sValue, Image=Images[Image].ID)
-            Domoticz.Debug("Device Image update: {} = {}".format(
-                Devices[Unit].Name, Images[Image].ID))
 
 # --------------------------------------------------------------------------------
 
@@ -505,7 +497,7 @@ _last_idle = _last_total = 0
 
 
 def getBits(value, start, length):
-    return ((value >> start) & 2**length - 1)
+    return (value >> start) & 2 ** length - 1
 
 
 def getCPUcount():
@@ -516,10 +508,11 @@ def getCPUcurrentSpeed():
     # Return CPU speed in Mhz
     try:
         res = os.popen(
-            "cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq").readline()
+            "cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq"
+        ).readline()
     except:
         res = "0"
-    return round(int(res)/1000)
+    return round(int(res) / 1000)
 
 
 def getCPUtemperature():
@@ -528,12 +521,12 @@ def getCPUtemperature():
         res = os.popen("cat /sys/class/thermal/thermal_zone0/temp").readline()
     except:
         res = "0"
-    return round(float(res)/1000, 1)
+    return round(float(res) / 1000, 1)
 
 
 def getCPUuptime():
     try:
-        with open('/proc/uptime') as f:
+        with open("/proc/uptime") as f:
             fields = [float(column) for column in f.readline().strip().split()]
         res = round(fields[0])
     except:
@@ -548,9 +541,8 @@ def getCPUuse():
     """
     global _last_idle, _last_total
     try:
-        with open('/proc/stat') as f:
-            fields = [float(column)
-                      for column in f.readline().strip().split()[1:]]
+        with open("/proc/stat") as f:
+            fields = [float(column) for column in f.readline().strip().split()[1:]]
         idle, total = fields[3], sum(fields)
         idle_delta, total_delta = idle - _last_idle, total - _last_total
         _last_idle, _last_total = idle, total
@@ -563,8 +555,11 @@ def getCPUuse():
 def getDomoticzMemory():
     # ps aux | grep domoticz | awk '{sum=sum+$6}; END {print sum}'
     try:
-        res = os.popen(
-            "ps aux | grep domoticz | awk '{sum=sum+$6}; END {print sum}'").readline().replace("\n", "")
+        res = (
+            os.popen("ps aux | grep domoticz | awk '{sum=sum+$6}; END {print sum}'")
+            .readline()
+            .replace("\n", "")
+        )
     except:
         res = "0"
     return float(res)
@@ -597,8 +592,13 @@ def getNetworkConnections(state):
 
 def getPiRevision():
     try:
-        res = os.popen(
-            "cat /proc/cpuinfo | grep Revision\t").readline().replace("\n", "").split(":")[1].strip()
+        res = (
+            os.popen("cat /proc/cpuinfo | grep Revision\t")
+            .readline()
+            .replace("\n", "")
+            .split(":")[1]
+            .strip()
+        )
         # Convert hex to int
         res = int(res, 16)
     except:
@@ -620,6 +620,8 @@ def getRAMinfo():
             # Index 1: used RAM
             # Index 2: free RAM
             return round(100 * int(res[1]) / int(res[0]), 2)
+
+
 # http://www.microcasts.tv/episodes/2014/03/15/memory-usage-on-the-raspberry-pi/
 # https://www.raspberrypi.org/forums/viewtopic.php?f=63&t=164787
 # https://stackoverflow.com/questions/22102999/get-total-physical-memory-in-python/28161352
@@ -639,7 +641,7 @@ def getUpStats():
         s = os.popen("uptime").readline()
         load_split = s.split("load average: ")
         up = load_split[0]
-        up_pos = up.rfind(",", 0, len(up)-4)
+        up_pos = up.rfind(",", 0, len(up) - 4)
         up = up[:up_pos].split("up ")[1]
         return up
     except:
@@ -654,3 +656,26 @@ def getVoltage(p):
     else:
         res = "0"
     return float(res)
+
+
+def getHostname():
+    return socket.gethostname()
+
+
+def getIP():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        s.connect(("8.8.8.8", 1))
+    except socket.error:
+        return None
+    return s.getsockname()[0]
+
+
+def getIP6():
+    s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
+    try:
+        s.connect(("2001:4860:4860::8888", 1))
+    except socket.error:
+        return None
+    return s.getsockname()[0]
+
