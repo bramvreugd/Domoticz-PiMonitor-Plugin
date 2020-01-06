@@ -17,14 +17,14 @@ Only works on Raspberry Pi
     sudo service domoticz.sh restart
     ```
 1. Make sure that "Accept new Hardware Devices" is enabled in Domoticz settings
-1. Go to "Hardware" page and add new hardware with Type "PWS"
-1. Enter the Port number as used in WS View
+1. Go to "Hardware" page and add new hardware with Type "PiMonitor"
+1. Enter the name
 1. Press Add
 
 ## Update
 1. Go to plugin folder and pull new version
     ```
-    cd domoticz/plugins/Domoticz-PWS-Plugin
+    cd domoticz/plugins/Domoticz-PiMonitor-Plugin
     git pull
     ```
 1. Restart domoticz
