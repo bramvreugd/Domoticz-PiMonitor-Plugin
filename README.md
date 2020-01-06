@@ -6,6 +6,32 @@ If you want to monitor disk usage, look at https://github.com/Xorfor/Domoticz-Di
 ## Prerequisites
 Only works on Raspberry Pi
 
+## Installation
+1. Clone repository into your Domoticz plugins folder
+    ```
+    cd domoticz/plugins
+    git clone https://github.com/Xorfor/Domoticz-PiMonitor-Plugin.git
+    ```
+1. Restart domoticz
+    ```
+    sudo service domoticz.sh restart
+    ```
+1. Make sure that "Accept new Hardware Devices" is enabled in Domoticz settings
+1. Go to "Hardware" page and add new hardware with Type "PWS"
+1. Enter the Port number as used in WS View
+1. Press Add
+
+## Update
+1. Go to plugin folder and pull new version
+    ```
+    cd domoticz/plugins/Domoticz-PWS-Plugin
+    git pull
+    ```
+1. Restart domoticz
+    ```
+    sudo service domoticz.sh restart
+    ```
+
 ## Parameters
 None
 
