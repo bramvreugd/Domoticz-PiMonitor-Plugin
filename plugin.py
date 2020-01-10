@@ -4,7 +4,7 @@
 #
 # Author: Xorfor
 """
-<plugin key="xfr-pimonitor" name="PiMonitor" author="Xorfor" version="3.0" wikilink="https://github.com/Xorfor/Domoticz-PiMonitor-Plugin">
+<plugin key="xfr-pimonitor" name="PiMonitor" author="Xorfor" version="3.1" wikilink="https://github.com/Xorfor/Domoticz-PiMonitor-Plugin">
     <params>
         <param field="Mode6" label="Debug" width="75px">
             <options>
@@ -48,6 +48,7 @@ class unit(IntEnum):
     THROTTLED = 16
     INFO = 17
     HOST = 18
+    LATENCY = 19
 
 
 class BasePlugin:
@@ -75,6 +76,7 @@ class BasePlugin:
         [unit.THROTTLED, "Throttled", 243, 31, {}, 1],
         [unit.INFO, "Info", 243, 19, {}, 1],
         [unit.HOST, "Host", 243, 19, {}, 1],
+        [unit.LATENCY, "Latency", 243, 31, {"Custom": "0;ms"}, 1],
     ]
 
     STYLE_OLD = 0
@@ -324,6 +326,10 @@ class BasePlugin:
             info = "{}: {}".format(getHostname(), getIP())
             UpdateDevice(unit.HOST, 0, info, TimedOut=0)
             #
+            fnumber = getGatewayLatency()
+            Domoticz.Debug("Latency ...: {} ms".format(fnumber))
+            UpdateDevice(unit.LATENCY, int(fnumber), str(fnumber), TimedOut=0)
+            #
         else:
             Domoticz.Debug(
                 "onHeartbeat called, run again in {} heartbeats.".format(
@@ -569,6 +575,14 @@ def getGPUtemperature():
     # Return GPU temperature
     return float(vcgencmd("measure_temp"))
 
+
+def getGatewayLatency():
+    try:
+        gateway = os.popen("route -n | awk '$1 == \"0.0.0.0\" { print $2 }'").readline().strip()
+        rtt = os.popen("ping -c1 {} | grep rtt".format(gateway)).readline().split()[3].split("/")[0]
+    except:
+        rtt = "0"
+    return float(rtt)
 
 def getMemory(p):
     if p in ["arm", "gpu"]:

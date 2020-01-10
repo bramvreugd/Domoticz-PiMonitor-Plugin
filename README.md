@@ -41,21 +41,22 @@ The following devices are created:
 
 | Name                | Description
 | :---                | :---
-| **CPU temperature** | Shows the current CPU temperature
-| **GPU temperature** | Shows the current GPU temperature
-| **CPU memory**      | Size of allocated memory for CPU
-| **GPU memory**      | Size of allocated memory for GPU (specified with eg. raspi-config)
-| **Memory usage**    | Percentage of CPU memory in use
-| **CPU usage**       | Percentage of CPU usage
-| **CPU speed**       | Current CPU speed
-| **CPU count**       | Number of CPUs/cores
-| **Up time**         | Up time of the Pi, in sec, minutes, hours or days
 | **Connections**     | Number of active network connections
 | **Core voltage**    | Core voltage
+| **CPU count**       | Number of CPUs/cores
+| **CPU memory**      | Size of allocated memory for CPU
+| **CPU temperature** | Shows the current CPU temperature
+| **CPU speed**       | Current CPU speed
+| **CPU usage**       | Percentage of CPU usage
+| **Domoticz memory** | Amount of memory used by Domoticz
+| **GPU memory**      | Size of allocated memory for GPU (specified with eg. raspi-config)
+| **GPU temperature** | Shows the current GPU temperature
+| **Host**            | Display hostname and ip address
+| **Info**            | Display RPi info in the format: `Type: Processor - Memory (Manufacturer: Version)`
+| **Latency**         | Latency to the gateway
+| **Memory usage**    | Percentage of CPU memory in use
 | **SDRAM C voltage** | SDRAM C voltage
 | **SDRAM I voltage** | SDRAM I voltage
 | **SDRAM P voltage** | SDRAM P voltage
-| **Domoticz memory** | Amount of memory used by Domoticz
 | **Throttled**       | Throttled
-| **Info**            | Display RPi info in the format: `Type: Processor - Memory (Manufacturer: Version)`
-| **Host**            | Display hostname and ip address
+| **Up time**         | Up time of the Pi, in sec, minutes, hours or days
