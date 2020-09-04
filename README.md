@@ -41,6 +41,9 @@ The following devices are created:
 
 | Name                | Description
 | :---                | :---
+| **Clock ARM**       | Clock ARM
+| **Clock Core**      | Clock Core
+| **Clock V3D**       | Clock V3D
 | **Connections**     | Number of active network connections
 | **Core voltage**    | Core voltage
 | **CPU count**       | Number of CPUs/cores

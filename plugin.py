@@ -4,7 +4,7 @@
 #
 # Author: Xorfor
 """
-<plugin key="xfr-pimonitor" name="PiMonitor" author="Xorfor" version="3.1" wikilink="https://github.com/Xorfor/Domoticz-PiMonitor-Plugin">
+<plugin key="xfr-pimonitor" name="PiMonitor" author="Xorfor" version="4.0" wikilink="https://github.com/Xorfor/Domoticz-PiMonitor-Plugin">
     <params>
         <param field="Mode6" label="Debug" width="75px">
             <options>
@@ -49,6 +49,9 @@ class unit(IntEnum):
     INFO = 17
     HOST = 18
     LATENCY = 19
+    CLOCK_ARM = 20
+    CLOCK_V3D = 21
+    CLOCK_CORE = 22
 
 
 class BasePlugin:
@@ -77,6 +80,9 @@ class BasePlugin:
         [unit.INFO, "Info", 243, 19, {}, 1],
         [unit.HOST, "Host", 243, 19, {}, 1],
         [unit.LATENCY, "Latency", 243, 31, {"Custom": "0;ms"}, 1],
+        [unit.CLOCK_ARM, "Clock ARM", 243, 31, {"Custom": "0;Mhz"}, 1],
+        [unit.CLOCK_V3D, "Clock V3D", 243, 31, {"Custom": "0;Mhz"}, 1],
+        [unit.CLOCK_CORE, "Clock Core", 243, 31, {"Custom": "0;Mhz"}, 1],
     ]
 
     STYLE_OLD = 0
@@ -105,7 +111,7 @@ class BasePlugin:
     }
 
     # New
-    MEMORY_SIZE = {0: "256 MB", 1: "512 MB", 2: "1 GB", 3: "2 GB", 4: "4 GB"}
+    MEMORY_SIZE = {0: "256 MB", 1: "512 MB", 2: "1 GB", 3: "2 GB", 4: "4 GB", 5: "8 GB"}
 
     MANUFACTURER = {
         0: "Sony UK",
@@ -124,7 +130,7 @@ class BasePlugin:
         0x00000002: "A+",
         0x00000003: "B+",
         0x00000004: "2B",
-        0x00000005: "Alpha(early prototype)",
+        0x00000005: "Alpha (early prototype)",
         0x00000006: "CM1",
         0x00000008: "3B",
         0x00000009: "Zero",
@@ -137,6 +143,8 @@ class BasePlugin:
         0x00000011: "4B",
     }
 
+    NUMBER_2_MEGA = 1 / 1000000
+
     def __init__(self):
         self.__runAgain = 0
 
@@ -147,12 +155,16 @@ class BasePlugin:
             Domoticz.Debugging(0)
         Domoticz.Debug("onStart called")
         # Validate parameters
+        # --------------------------------------------------------------------------------
+        # The provided images do, for some reason, conflit with Domoticz!!!
+        # --------------------------------------------------------------------------------
         # Images
         # Check if images are in database
         # if "xfrpimonitor" not in Images:
         #     Domoticz.Image("xfrpimonitor.zip").Create()
         # image = Images["xfrpimonitor"].ID
         # Domoticz.Debug("Image created. ID: {}".format(image))
+        #
         # Create devices
         for unit in self.__UNITS:
             if unit[0] not in Devices:
@@ -190,11 +202,11 @@ class BasePlugin:
         )
 
     def onCommand(self, Unit, Command, Level, Hue):
-        Domoticz.Debug("on_command: {}, {}, {}, {}".format(unit, command, level, hue))
+        Domoticz.Debug("onCommand: {}, {}, {}, {}".format(unit, command, level, hue))
 
     def onNotification(self, Name, Subject, Text, Status, Priority, Sound, ImageFile):
         Domoticz.Debug(
-            "on_notification: {}, {}, {}, {}, {}, {}, {}".format(
+            "onNotification: {}, {}, {}, {}, {}, {}, {}".format(
                 name, subject, text, status, priority, sound, imagefile
             )
         )
@@ -291,14 +303,20 @@ class BasePlugin:
             #
             res = getPiRevision()
             # https://www.raspberrypi.org/documentation/hardware/raspberrypi/revision-codes/README.md
-            # uuuuuuuuFMMMCCCCPPPPTTTTTTTTRRRR
-            # |       ||  |   |   |       +------ R: Revision
-            # |       ||  |   |   +-------------- T: Type
-            # |       ||  |   +------------------ P: Processor
-            # |       ||  +---------------------- C: Manufacturer
-            # |       |+------------------------- M: Memory size
-            # |       +-------------------------- F: New flag
-            # +---------------------------------- U: Unused
+            # NOQuuuWuFMMMCCCCPPPPTTTTTTTTRRRR
+            # ||||  ||||  |   |   |       |
+            # ||||  ||||  |   |   |       +------ R: Revision
+            # ||||  ||||  |   |   +-------------- T: Type
+            # ||||  ||||  |   +------------------ P: Processor
+            # ||||  ||||  +---------------------- C: Manufacturer
+            # ||||  |||+------------------------- M: Memory size
+            # ||||  ||+-------------------------- F: New flag
+            # ||||  |+--------------------------- u: unused
+            # ||||  +---------------------------- W: Warranty bit
+            # |||+------------------------------- u: unused
+            # ||+-------------------------------- Q: OTP Read
+            # |+--------------------------------- O: OTP Program
+            # +---------------------------------- N: Overvoltage
             style = getBits(res, 23, 1)
             if style == self.STYLE_OLD:
                 memory = self.OLD_STYLE.get(res)[2]
@@ -313,7 +331,7 @@ class BasePlugin:
                 type = self.TYPE.get(getBits(res, 4, 8))
                 revision = "{:.1f}".format(getBits(res, 0, 4))
             Domoticz.Debug(
-                "Raspberry ....{}: {} - {} ({}: {})".format(
+                "Raspberry .........: {}: {} - {} ({}: {})".format(
                     type, soc, memory, manufacturer, revision
                 )
             )
@@ -327,8 +345,20 @@ class BasePlugin:
             UpdateDevice(unit.HOST, 0, info, TimedOut=0)
             #
             fnumber = getGatewayLatency()
-            Domoticz.Debug("Latency ...: {} ms".format(fnumber))
+            Domoticz.Debug("Latency ...........: {} ms".format(fnumber))
             UpdateDevice(unit.LATENCY, int(fnumber), str(fnumber), TimedOut=0)
+            #
+            fnumber = round(getClock("arm") * self.NUMBER_2_MEGA)
+            Domoticz.Debug("Clock (arm) .......: {} Mhz".format(fnumber))
+            UpdateDevice(unit.CLOCK_ARM, int(fnumber), str(fnumber), TimedOut=0)
+            #
+            fnumber = round(getClock("v3d") * self.NUMBER_2_MEGA)
+            Domoticz.Debug("Clock (v3d) .......: {} Mhz".format(fnumber))
+            UpdateDevice(unit.CLOCK_V3D, int(fnumber), str(fnumber), TimedOut=0)
+            #
+            fnumber = round(getClock("core") * self.NUMBER_2_MEGA)
+            Domoticz.Debug("Clock (core) .......: {} Mhz".format(fnumber))
+            UpdateDevice(unit.CLOCK_CORE, int(fnumber), str(fnumber), TimedOut=0)
             #
         else:
             Domoticz.Debug(
@@ -467,6 +497,9 @@ options = {
     "measure_temp": ["temp", "'C"],
     "get_mem gpu": ["gpu", "M"],
     "get_mem arm": ["arm", "M"],
+    "measure_clock core": ["frequency(1)", ""],
+    "measure_clock arm": ["frequency(48)", ""],
+    "measure_clock v3d": ["frequency(46)", ""],
     "measure_volts core": ["volt", "V"],
     "measure_volts sdram_c": ["volt", "V"],
     "measure_volts sdram_i": ["volt", "V"],
@@ -504,6 +537,30 @@ _last_idle = _last_total = 0
 
 def getBits(value, start, length):
     return (value >> start) & 2 ** length - 1
+
+
+def getClock(p):
+    Domoticz.Debug("getClock p: {}".format(p))
+    if p in [
+        "arm",
+        "core",
+        "dpi",
+        "emmc",
+        "h264",
+        "hdmi",
+        "isp",
+        "pixel",
+        "pwm",
+        "uart",
+        "v3d",
+        "vec",
+    ]:
+        res = vcgencmd("measure_clock {}".format(p))
+        Domoticz.Debug("getClock measure_clock: {}".format(res))
+    else:
+        Domoticz.Debug("getClock: Invalid parameter")
+        res = "0"
+    return int(res)
 
 
 def getCPUcount():
@@ -571,18 +628,50 @@ def getDomoticzMemory():
     return float(res)
 
 
+def getGatewayLatency():
+    try:
+        gateway = (
+            os.popen("route -n | awk '$1 == \"0.0.0.0\" { print $2 }'")
+            .readline()
+            .strip()
+        )
+        rtt = (
+            os.popen("ping -c1 {} | grep rtt".format(gateway))
+            .readline()
+            .split()[3]
+            .split("/")[0]
+        )
+    except:
+        rtt = "0"
+    return float(rtt)
+
+
 def getGPUtemperature():
     # Return GPU temperature
     return float(vcgencmd("measure_temp"))
 
 
-def getGatewayLatency():
+def getHostname():
+    return socket.gethostname()
+
+
+def getIP():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
-        gateway = os.popen("route -n | awk '$1 == \"0.0.0.0\" { print $2 }'").readline().strip()
-        rtt = os.popen("ping -c1 {} | grep rtt".format(gateway)).readline().split()[3].split("/")[0]
-    except:
-        rtt = "0"
-    return float(rtt)
+        s.connect(("8.8.8.8", 1))
+    except socket.error:
+        return None
+    return s.getsockname()[0]
+
+
+def getIP6():
+    s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
+    try:
+        s.connect(("2001:4860:4860::8888", 1))
+    except socket.error:
+        return None
+    return s.getsockname()[0]
+
 
 def getMemory(p):
     if p in ["arm", "gpu"]:
@@ -670,26 +759,4 @@ def getVoltage(p):
     else:
         res = "0"
     return float(res)
-
-
-def getHostname():
-    return socket.gethostname()
-
-
-def getIP():
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    try:
-        s.connect(("8.8.8.8", 1))
-    except socket.error:
-        return None
-    return s.getsockname()[0]
-
-
-def getIP6():
-    s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
-    try:
-        s.connect(("2001:4860:4860::8888", 1))
-    except socket.error:
-        return None
-    return s.getsockname()[0]
 
