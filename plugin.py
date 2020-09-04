@@ -305,18 +305,18 @@ class BasePlugin:
             # https://www.raspberrypi.org/documentation/hardware/raspberrypi/revision-codes/README.md
             # NOQuuuWuFMMMCCCCPPPPTTTTTTTTRRRR
             # ││││  ││││  │   │   │       │
-            # ││││  ││││  │   │   │       └------ R: Revision
-            # ||||::||||::|:::|:::└-------------- T: Type
-            # ||||::||||::|:::└------------------ P: Processor
-            # ||||::||||::└---------------------- C: Manufacturer
-            # ||||::|||└------------------------- M: Memory size
-            # ||||::||└-------------------------- F: New flag
-            # ||||::|└--------------------------- u: unused
-            # ||||::└---------------------------- W: Warranty bit
-            # |||└------------------------------- u: unused
-            # ||└-------------------------------- Q: OTP Read
-            # |└--------------------------------- O: OTP Program
-            # └---------------------------------- N: Overvoltage
+            # ││││  ││││  │   │   │       └────── R: Revision
+            # ||||::||||::|:::|:::└────────────── T: Type
+            # ||||::||||::|:::└────────────────── P: Processor
+            # ||||::||||::└────────────────────── C: Manufacturer
+            # ||||::|||└───────────────────────── M: Memory size
+            # ||||::||└────────────────────────── F: New flag
+            # ||||::|└─────────────────────────── u: unused
+            # ||||::└──────────────────────────── W: Warranty bit
+            # |||└─────────────────────────────── u: unused
+            # ||└──────────────────────────────── Q: OTP Read
+            # |└───────────────────────────────── O: OTP Program
+            # └────────────────────────────────── N: Overvoltage
             style = getBits(res, 23, 1)
             if style == self.STYLE_OLD:
                 memory = self.OLD_STYLE.get(res)[2]
