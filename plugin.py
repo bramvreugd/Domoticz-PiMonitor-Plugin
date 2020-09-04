@@ -304,8 +304,8 @@ class BasePlugin:
             res = getPiRevision()
             # https://www.raspberrypi.org/documentation/hardware/raspberrypi/revision-codes/README.md
             # NOQuuuWuFMMMCCCCPPPPTTTTTTTTRRRR
-            # ||||::||||::|:::|:::|:::::::|:::
-            # ||||::||||::|:::|:::|:::::::└------ R: Revision
+            # ││││  ││││  │   │   │       │
+            # ││││  ││││  │   │   │       └------ R: Revision
             # ||||::||||::|:::|:::└-------------- T: Type
             # ||||::||||::|:::└------------------ P: Processor
             # ||||::||||::└---------------------- C: Manufacturer
