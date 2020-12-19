@@ -4,7 +4,7 @@
 #
 # Author: Xorfor
 """
-<plugin key="xfr-pimonitor" name="PiMonitor" author="Xorfor" version="4.0" wikilink="https://github.com/Xorfor/Domoticz-PiMonitor-Plugin">
+<plugin key="xfr-pimonitor" name="PiMonitor" author="Xorfor" version="4.1" wikilink="https://github.com/Xorfor/Domoticz-PiMonitor-Plugin">
     <params>
         <param field="Mode6" label="Debug" width="75px">
             <options>
@@ -141,6 +141,8 @@ class BasePlugin:
         0x0000000F: "Internal use only",
         0x00000010: "CM3+",
         0x00000011: "4B",
+        0x00000013: "400",
+        0x00000014: "CM4",
     }
 
     NUMBER_2_MEGA = 1 / 1000000
