@@ -76,7 +76,7 @@ class BasePlugin:
         [unit.SDRAMIVOLTAGE, "SDRAM I voltage", 243, 31, {"Custom": "0;V"}, 1],
         [unit.SDRAMPVOLTAGE, "SDRAM P voltage", 243, 31, {"Custom": "0;V"}, 1],
         [unit.DOMOTICZMEMORY, "Domoticz memory", 243, 31, {"Custom": "0;KB"}, 1],
-        [unit.THROTTLED, "Throttled", 243, 31, {}, 1],
+        [unit.THROTTLED, "Throttled", 243, 19, {}, 1],
         [unit.INFO, "Info", 243, 19, {}, 1],
         [unit.HOST, "Host", 243, 19, {}, 1],
         [unit.LATENCY, "Latency", 243, 31, {"Custom": "0;ms"}, 1],
@@ -143,6 +143,28 @@ class BasePlugin:
         0x00000011: "4B",
         0x00000013: "400",
         0x00000014: "CM4",
+    }
+
+
+#Bit Hex value   Meaning
+#0          1    Under-voltage detected
+#1          2    Arm frequency capped
+#2          4    Currently throttled
+#3          8    Soft temperature limit active
+#16     10000    Under-voltage has occurred
+#17     20000    Arm frequency capping has occurred
+#18     40000    Throttling has occurred
+#19     80000    Soft temperature limit has occurred
+    
+    MESSAGES = {
+      0: 'Under-voltage!',
+      1: 'ARM frequency capped!',
+      2: 'Currently throttled!',
+      3: 'Soft temperature limit active',
+      16: 'Under-voltage has occurred since last reboot.',
+      17: 'Throttling has occurred since last reboot.',
+      18: 'ARM frequency capped has occurred since last reboot.',
+      19: 'Soft temperature limit has occurred'
     }
 
     NUMBER_2_MEGA = 1 / 1000000
@@ -299,9 +321,20 @@ class BasePlugin:
             Domoticz.Debug("Domoticz memory ...: {} KB".format(fnumber))
             UpdateDevice(unit.DOMOTICZMEMORY, int(fnumber), str(fnumber), TimedOut=0)
             #
-            inumber = getThrottled()
-            Domoticz.Debug("Throttled .........: {}".format(inumber))
-            UpdateDevice(unit.THROTTLED, inumber, str(inumber), TimedOut=0)
+            throttled = getThrottled()
+            ThrottledTxt=str(throttled)+':'
+            warnings=0
+            for position in self.MESSAGES.keys():
+                if (throttled  & (1<<position)):
+                    ThrottledTxt=ThrottledTxt+' '+str((1<<position))+":"+ self.MESSAGES[position]
+                    warnings += 1
+            if(warnings==0):
+                ThrottledTxt= "Looking good!" 
+            
+            Domoticz.Debug("Throttled .........: {}"+ThrottledTxt)
+            UpdateDevice(unit.THROTTLED, 0, ThrottledTxt, TimedOut=0)
+            
+            #UpdateDevice(unit.THROTTLED, inumber, str(inumber), TimedOut=0)
             #
             res = getPiRevision()
             # https://www.raspberrypi.org/documentation/hardware/raspberrypi/revision-codes/README.md
@@ -733,10 +766,9 @@ def getRAMinfo():
 # https://stackoverflow.com/questions/17718449/determine-free-ram-in-python
 # https://www.reddit.com/r/raspberry_pi/comments/60h5qv/trying_to_make_a_system_info_monitor_with_an_lcd/
 
-
 def getThrottled():
     return int(vcgencmd("throttled"))
-
+    
 
 def getUpStats():
     # Get uptime of RPi
