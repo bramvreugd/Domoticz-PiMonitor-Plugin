@@ -2,7 +2,7 @@
 # Update
 Original maker was not happy and stopped to maintain this plugin.
 
-I made a little change to this plugin to show a text a the throttled status in stead of only a number.
+I made a little change to this plugin to show a text of the throttled status instead of only a number.
 
 
 
