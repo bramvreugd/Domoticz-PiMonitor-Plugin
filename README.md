@@ -48,8 +48,9 @@ Only works on Raspberry Pi
 process list
 
 Give all the names of the proceses you want to monitor.
-Check the name of the process with a util like top
-Use parameter domoticz,mosquitto to monitor both the domoticz process as well as the mqtt server process,
+Check the name of the process with a util like top.
+
+Use parameter domoticz,mosquitto to monitor both the domoticz process as well as the mqtt server process.
 
 ## Devices
 The following devices are created:
