@@ -2,10 +2,11 @@
 # -*- coding: utf-8 -*-
 # PiMonitor Plugin
 #
-# Author: Xorfor
+# Author: Xorfor, BramV
 """
-<plugin key="xfr-pimonitor" name="PiMonitor" author="Xorfor" version="4.2" wikilink="https://github.com/Xorfor/Domoticz-PiMonitor-Plugin">
+<plugin key="xfr-pimonitor" name="PiMonitor" author="Xorfor, Bramv" version="4.3" wikilink="https://github.com/bramvreugd/Domoticz-PiMonitor-Plugin">
     <params>
+        <param field="Mode1" label="Check processes. comma seperated" width="150px" default="Domoticz"/>
         <param field="Mode6" label="Debug" width="75px">
             <options>
                 <option label="True" value="Debug"/>
@@ -19,7 +20,7 @@ import Domoticz
 import os
 import socket
 from enum import IntEnum, unique  # , auto
-
+import psutil
 
 @unique
 class unit(IntEnum):
@@ -53,6 +54,7 @@ class unit(IntEnum):
     CLOCK_V3D = 21
     CLOCK_CORE = 22
 
+PROCESSES = 23
 
 class BasePlugin:
 
@@ -173,10 +175,13 @@ class BasePlugin:
         self.__runAgain = 0
 
     def onStart(self):
+        global PROCESSES
+       
         if Parameters["Mode6"] == "Debug":
             Domoticz.Debugging(1)
         else:
             Domoticz.Debugging(0)
+        
         Domoticz.Debug("onStart called")
         # Validate parameters
         # --------------------------------------------------------------------------------
@@ -198,9 +203,35 @@ class BasePlugin:
                     Type=unit[2],
                     Subtype=unit[3],
                     Options=unit[4],
-                    Used=unit[5],
+                    Used=unit[5] 
+                ).Create()
+        # create cpu usage en memory per process
+        Domoticz.Log("Check devices:" + Parameters["Mode1"])
+            
+        for i,processname in enumerate(Parameters["Mode1"].split(",")):
+            unitcpu=self.__UNITS[3]
+            if (PROCESSES)+(i*2) not in Devices:
+                Domoticz.Device(
+                    Unit=(PROCESSES)+(i*2),
+                    Name=processname+" "+unitcpu[1],
+                    Type=unitcpu[2],
+                    Subtype=unitcpu[3],
+                    Options=unitcpu[4],
+                    Used=unitcpu[5]
+                ).Create()
+            Domoticz.Log("created device:" + processname+" "+unitcpu[1])
+            if (PROCESSES)+(i*2)+1 not in Devices:
+                unitmem=self.__UNITS[14] 
+                Domoticz.Device(
+                    Unit=(PROCESSES)+(i*2)+1,
+                    Name=processname+" memory",
+                    Type=unitmem[2],
+                    Subtype=unitmem[3],
+                    Options=unitmem[4],
+                    Used=unitmem[5],
                     # Image=image,
                 ).Create()
+            
         # Log config
         DumpAllToLog()
 
@@ -243,7 +274,7 @@ class BasePlugin:
         )
 
     def onHeartbeat(self):
-        Domoticz.Debug("onHeartbeat")
+        global PROCESSES 
         self.__runAgain -= 1
         if self.__runAgain <= 0:
             self.__runAgain = self.__HEARTBEATS2MIN * self.__MINUTES
@@ -395,13 +426,36 @@ class BasePlugin:
             Domoticz.Debug("Clock (core) .......: {} Mhz".format(fnumber))
             UpdateDevice(unit.CLOCK_CORE, int(fnumber), str(fnumber), TimedOut=0)
             #
+            
+            
+            #Domoticz.debug("Check processes:" + Parameters["Mode1"])
+        
+            if(Parameters["Mode1"]!=""):
+                i=0
+                #Domoticz.Debug("Check processes")
+                for process in psutil.process_iter():
+                    i=i+1
+                    for i,processname in enumerate(Parameters["Mode1"].split(",")):
+                        #remove # below to get full list of processes in syslog
+                        #Domoticz.info("Check processes:"+str(process.name()))
+                        if(str(process.name())==processname):
+                           cpu_usage = process.cpu_percent()
+                           Domoticz.Error("Check processes cpu :"+str(cpu_usage))
+                        
+                           UpdateDevice(PROCESSES+(i*2),0,str(cpu_usage))
+                           try:
+                               # get the memory usage in bytes
+                                memory_usage = process.memory_full_info().uss/1024
+                           except psutil.AccessDenied:
+                               memory_usage = 0
+                           UpdateDevice(PROCESSES+1+(i*2),int(memory_usage),str(memory_usage))
+                                 
         else:
             Domoticz.Debug(
                 "onHeartbeat called, run again in {} heartbeats.".format(
                     self.__runAgain
                 )
             )
-
 
 global _plugin
 _plugin = BasePlugin()
