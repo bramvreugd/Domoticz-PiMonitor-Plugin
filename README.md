@@ -4,7 +4,9 @@ Original maker was not happy and stopped to maintain this plugin.
 
 I made a little change to this plugin to show a text of the throttled status instead of only a number.
 
+You can now also add your own processes for which the cpu and memory will be monitored.  (you need psutil installed).
 
+This is for example usefull to monitor domoticz cpu usage.
 
 # PiMonitor
 Python plugin to monitor temperature, memory usage, etc. from a Raspberry Pi.
@@ -19,6 +21,7 @@ Only works on Raspberry Pi
     ```
     cd domoticz/plugins
     git clone https://github.com/Xorfor/Domoticz-PiMonitor-Plugin.git
+    sudo apt install psutil
     ```
 1. Restart domoticz
     ```
@@ -71,3 +74,5 @@ The following devices are created:
 | **SDRAM P voltage** | SDRAM P voltage
 | **Throttled**       | Throttled
 | **Up time**         | Up time of the Pi, in sec, minutes, hours or days
+| **CPU usage**       | CPU usage for given process
+| **Memory usage**    | Total memory usage for given process
